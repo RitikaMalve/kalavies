@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminStorage } from '@/lib/firebaseAdmin'
-import sharp from 'sharp'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,32 +12,22 @@ export async function POST(req: NextRequest) {
     }
 
     const bytes = await file.arrayBuffer()
-    const rawBuffer = Buffer.from(bytes)
-
-    // Optimize image with Sharp (resize to max 1200x1200px and compress WebP)
-    let optimizedBuffer = rawBuffer
-    try {
-      optimizedBuffer = await sharp(rawBuffer)
-        .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toBuffer()
-    } catch (sharpErr) {
-      console.warn('Sharp optimization skipped:', sharpErr)
-    }
+    const buffer = Buffer.from(bytes)
+    const mimeType = file.type || 'image/jpeg'
 
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const uniqueFileName = `${Date.now()}-${sanitizedFileName}.webp`
+    const uniqueFileName = `${Date.now()}-${sanitizedFileName}`
     const storagePath = `${folder}/${uniqueFileName}`
 
-    // 1. Try Firebase Cloud Storage if initialized and bucket configured
+    // 1. Try Firebase Cloud Storage if configured
     if (adminStorage) {
       try {
         const bucket = adminStorage.bucket()
         const fileRef = bucket.file(storagePath)
 
-        await fileRef.save(optimizedBuffer, {
+        await fileRef.save(buffer, {
           metadata: {
-            contentType: 'image/webp',
+            contentType: mimeType,
           },
           public: true,
         })
@@ -51,14 +40,13 @@ export async function POST(req: NextRequest) {
           fileName: uniqueFileName,
         })
       } catch (fbErr: any) {
-        console.warn('Firebase Storage upload failed, falling back:', fbErr?.message)
+        console.warn('Firebase Storage upload failed:', fbErr?.message)
       }
     }
 
-    // 2. Safe serverless fallback: Embedded WebP Data URL
-    // Works 100% reliably in serverless lambdas without write filesystem permissions or external storage keys
-    const base64Data = optimizedBuffer.toString('base64')
-    const dataUrl = `data:image/webp;base64,${base64Data}`
+    // 2. Pure JavaScript Data URL fallback (Zero native C++ binary required, works on all platforms)
+    const base64Data = buffer.toString('base64')
+    const dataUrl = `data:${mimeType};base64,${base64Data}`
 
     return NextResponse.json({
       success: true,
@@ -67,9 +55,9 @@ export async function POST(req: NextRequest) {
       fileName: uniqueFileName,
     })
   } catch (err: any) {
-    console.error('Upload handler error:', err)
+    console.error('Upload error:', err)
     return NextResponse.json(
-      { error: err.message || 'Image processing failed' },
+      { error: err.message || 'Upload processing failed' },
       { status: 500 }
     )
   }
