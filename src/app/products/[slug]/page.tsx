@@ -15,27 +15,35 @@ interface Props {
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: { orderBy: { sortOrder: 'asc' } },
-      variants: { where: { isActive: true } },
-      category: true,
-    },
-  })
+  let product: any = null
+  let relatedProducts: any[] = []
+
+  try {
+    product = await prisma.product.findUnique({
+      where: { slug },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: { where: { isActive: true } },
+        category: true,
+      },
+    })
+
+    if (product) {
+      relatedProducts = await prisma.product.findMany({
+        where: {
+          categoryId: product.categoryId,
+          id: { not: product.id },
+          status: 'PUBLISHED',
+        },
+        take: 4,
+        include: { images: true, category: true },
+      })
+    }
+  } catch (err) {
+    console.error('Error fetching product detail:', err)
+  }
 
   if (!product) notFound()
-
-  // Fetch related products from same category
-  const relatedProducts = await prisma.product.findMany({
-    where: {
-      categoryId: product.categoryId,
-      id: { not: product.id },
-      status: 'PUBLISHED',
-    },
-    take: 4,
-    include: { images: true, category: true },
-  })
 
   return (
     <StoreLayout>

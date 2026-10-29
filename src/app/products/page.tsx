@@ -44,63 +44,75 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
     ]
   }
 
-  if (categorySlug) {
-    const matchedCategory = await prisma.category.findUnique({
-      where: { slug: categorySlug },
-      include: { children: true },
-    })
+  let products: any[] = []
+  let totalCount = 0
+  let categories: any[] = []
 
-    if (matchedCategory) {
-      if (matchedCategory.children.length > 0) {
-        where.categoryId = {
-          in: [matchedCategory.id, ...matchedCategory.children.map((c) => c.id)],
+  try {
+    if (categorySlug) {
+      const matchedCategory = await prisma.category.findUnique({
+        where: { slug: categorySlug },
+        include: { children: true },
+      })
+
+      if (matchedCategory) {
+        if (matchedCategory.children.length > 0) {
+          where.categoryId = {
+            in: [matchedCategory.id, ...matchedCategory.children.map((c) => c.id)],
+          }
+        } else {
+          where.categoryId = matchedCategory.id
         }
-      } else {
-        where.categoryId = matchedCategory.id
       }
     }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.sellingPrice = {}
+      if (minPrice !== undefined) where.sellingPrice.gte = minPrice
+      if (maxPrice !== undefined) where.sellingPrice.lte = maxPrice
+    }
+
+    if (material) {
+      where.material = { contains: material }
+    }
+
+    if (filterBadge === 'trending') where.isTrending = true
+    if (filterBadge === 'bestseller') where.isBestseller = true
+    if (filterBadge === 'new') where.isNewArrival = true
+    if (filterBadge === 'featured') where.isFeatured = true
+
+    // Sort order
+    let orderBy: any = { createdAt: 'desc' }
+    if (sort === 'price-asc') orderBy = { sellingPrice: 'asc' }
+    if (sort === 'price-desc') orderBy = { sellingPrice: 'desc' }
+    if (sort === 'popularity') orderBy = { soldCount: 'desc' }
+    if (sort === 'rating') orderBy = { avgRating: 'desc' }
+
+    const results = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy,
+        include: {
+          images: true,
+          category: true,
+        },
+      }),
+      prisma.product.count({ where }),
+      prisma.category.findMany({
+        where: { parentId: null, isActive: true },
+        include: { children: { where: { isActive: true } } },
+        orderBy: { sortOrder: 'asc' },
+      }),
+    ])
+
+    products = results[0]
+    totalCount = results[1]
+    categories = results[2]
+  } catch (err) {
+    console.error('Error fetching catalog products:', err)
   }
-
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    where.sellingPrice = {}
-    if (minPrice !== undefined) where.sellingPrice.gte = minPrice
-    if (maxPrice !== undefined) where.sellingPrice.lte = maxPrice
-  }
-
-  if (material) {
-    where.material = { contains: material }
-  }
-
-  if (filterBadge === 'trending') where.isTrending = true
-  if (filterBadge === 'bestseller') where.isBestseller = true
-  if (filterBadge === 'new') where.isNewArrival = true
-  if (filterBadge === 'featured') where.isFeatured = true
-
-  // Sort order
-  let orderBy: any = { createdAt: 'desc' }
-  if (sort === 'price-asc') orderBy = { sellingPrice: 'asc' }
-  if (sort === 'price-desc') orderBy = { sellingPrice: 'desc' }
-  if (sort === 'popularity') orderBy = { soldCount: 'desc' }
-  if (sort === 'rating') orderBy = { avgRating: 'desc' }
-
-  const [products, totalCount, categories] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy,
-      include: {
-        images: true,
-        category: true,
-      },
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({
-      where: { parentId: null, isActive: true },
-      include: { children: { where: { isActive: true } } },
-      orderBy: { sortOrder: 'asc' },
-    }),
-  ])
 
   const totalPages = Math.ceil(totalCount / limit)
 
@@ -185,7 +197,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                       </Link>
                       {c.children && (
                         <div className="pl-3 space-y-0.5">
-                          {c.children.map((sub) => (
+                          {c.children.map((sub: any) => (
                             <Link
                               key={sub.id}
                               href={`/products?category=${sub.slug}&sort=${sort}`}
