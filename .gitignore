@@ -21,9 +21,8 @@
 /build
 
 # sqlite
-*.db
 *.db-journal
-dev.db
+!prisma/dev.db
 .DS_Store
 *.pem
 

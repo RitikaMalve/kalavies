@@ -7,8 +7,16 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } fro
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  const [banners, categories, trendingProducts, bestsellers, newArrivals, coupons, testimonials] =
-    await Promise.all([
+  let banners: any[] = []
+  let categories: any[] = []
+  let trendingProducts: any[] = []
+  let bestsellers: any[] = []
+  let newArrivals: any[] = []
+  let coupons: any[] = []
+  let testimonials: any[] = []
+
+  try {
+    const results = await Promise.all([
       prisma.homepageBanner.findMany({
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
@@ -49,6 +57,17 @@ export default async function HomePage() {
         orderBy: { sortOrder: 'asc' },
       }),
     ])
+
+    banners = results[0]
+    categories = results[1]
+    trendingProducts = results[2]
+    bestsellers = results[3]
+    newArrivals = results[4]
+    coupons = results[5]
+    testimonials = results[6]
+  } catch (error) {
+    console.error('Error fetching homepage data:', error)
+  }
 
   const heroBanner = banners[0] || {
     title: 'Royal Indian Handcrafted Jewellery',
