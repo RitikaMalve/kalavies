@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react'
+import { uploadProductImage } from '@/lib/storageHelper'
 
 interface Category {
   id: string
@@ -95,26 +96,8 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     setError('')
 
     try {
-      const data = new FormData()
-      data.append('file', file)
-      data.append('folder', 'products')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: data,
-      })
-
-      const text = await res.text()
-      let result: any
-      try {
-        result = JSON.parse(text)
-      } catch {
-        throw new Error(`Upload server error (${res.status}): ${text.slice(0, 80)}`)
-      }
-
-      if (!res.ok) throw new Error(result.error || 'Upload failed')
-
-      setImages((prev) => [...prev, result.url])
+      const uploadResult = await uploadProductImage(file, 'products')
+      setImages((prev) => [...prev, uploadResult.url])
     } catch (err: any) {
       setError(err.message || 'Image upload failed')
     } finally {
