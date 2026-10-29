@@ -8,50 +8,62 @@ import { Package, FolderTree, ShoppingBag, Percent, ArrowUpRight } from 'lucide-
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
-  const [
-    totalProducts,
-    totalCategories,
-    totalOrders,
-    totalCustomers,
-    recentOrdersData,
-    lowStockProducts,
-    allOrders,
-  ] = await Promise.all([
-    prisma.product.count({ where: { status: { not: 'ARCHIVED' } } }),
-    prisma.category.count(),
-    prisma.order.count(),
-    prisma.user.count({ where: { role: 'CUSTOMER' } }),
-    prisma.order.findMany({
-      take: 8,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: { select: { firstName: true, lastName: true } },
-      },
-    }),
-    prisma.product.findMany({
-      where: {
-        totalStock: { lte: 10 },
-        status: 'PUBLISHED',
-      },
-      take: 6,
-      select: {
-        id: true,
-        name: true,
-        sku: true,
-        totalStock: true,
-        lowStockThreshold: true,
-      },
-      orderBy: { totalStock: 'asc' },
-    }),
-    prisma.order.findMany({
-      select: {
-        totalAmount: true,
-        status: true,
-        paymentStatus: true,
-        createdAt: true,
-      },
-    }),
-  ])
+  let totalProducts = 0
+  let totalCategories = 0
+  let totalOrders = 0
+  let totalCustomers = 0
+  let recentOrdersData: any[] = []
+  let lowStockProducts: any[] = []
+  let allOrders: any[] = []
+
+  try {
+    const results = await Promise.all([
+      prisma.product.count({ where: { status: { not: 'ARCHIVED' } } }),
+      prisma.category.count(),
+      prisma.order.count(),
+      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.order.findMany({
+        take: 8,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { firstName: true, lastName: true } },
+        },
+      }),
+      prisma.product.findMany({
+        where: {
+          totalStock: { lte: 10 },
+          status: 'PUBLISHED',
+        },
+        take: 6,
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          totalStock: true,
+          lowStockThreshold: true,
+        },
+        orderBy: { totalStock: 'asc' },
+      }),
+      prisma.order.findMany({
+        select: {
+          totalAmount: true,
+          status: true,
+          paymentStatus: true,
+          createdAt: true,
+        },
+      }),
+    ])
+
+    totalProducts = results[0]
+    totalCategories = results[1]
+    totalOrders = results[2]
+    totalCustomers = results[3]
+    recentOrdersData = results[4]
+    lowStockProducts = results[5]
+    allOrders = results[6]
+  } catch (err) {
+    console.error('Error fetching admin dashboard stats:', err)
+  }
 
   // Calculate total revenue from delivered or paid orders
   const totalRevenue = allOrders

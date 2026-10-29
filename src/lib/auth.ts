@@ -28,39 +28,57 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
-export async function createToken(payload: { userId: string; role: string }): Promise<string> {
-  return new SignJWT(payload)
+export async function createToken(payload: {
+  userId: string
+  role: string
+  email?: string
+  firstName?: string
+  lastName?: string
+}): Promise<string> {
+  return new SignJWT(payload as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
     .sign(JWT_SECRET)
 }
 
-export async function verifyToken(token: string): Promise<{ userId: string; role: string } | null> {
+export async function verifyToken(
+  token: string
+): Promise<{ userId: string; role: string; email?: string; firstName?: string; lastName?: string } | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as { userId: string; role: string }
+    return payload as any
   } catch {
     return null
   }
 }
 
 export async function createSession(userId: string, userAgent?: string, ipAddress?: string): Promise<string> {
-  const token = await createToken({ userId, role: '' })
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) throw new Error('User not found')
 
-  const tokenWithRole = await createToken({ userId, role: user.role })
-
-  await prisma.session.create({
-    data: {
-      userId,
-      token: tokenWithRole,
-      expiresAt: new Date(Date.now() + SESSION_DURATION),
-      userAgent,
-      ipAddress,
-    },
+  const tokenWithRole = await createToken({
+    userId,
+    role: user.role,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
   })
+
+  try {
+    await prisma.session.create({
+      data: {
+        userId,
+        token: tokenWithRole,
+        expiresAt: new Date(Date.now() + SESSION_DURATION),
+        userAgent,
+        ipAddress,
+      },
+    })
+  } catch (err) {
+    // Non-blocking in serverless environments
+    console.warn('Session table write non-blocking:', err)
+  }
 
   return tokenWithRole
 }
@@ -72,32 +90,45 @@ export async function getSession(): Promise<AuthUser | null> {
   if (!token) return null
 
   const payload = await verifyToken(token)
-  if (!payload) return null
+  if (!payload || !payload.userId) return null
 
-  const session = await prisma.session.findFirst({
-    where: {
-      token,
-      expiresAt: { gt: new Date() },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          phone: true,
-          avatar: true,
-          isActive: true,
-        },
+  const userId = payload.userId
+
+  // 1. Try fetching user directly from DB
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+        avatar: true,
+        isActive: true,
       },
-    },
-  })
+    })
 
-  if (!session || !session.user.isActive) return null
+    if (user && user.isActive) {
+      return user
+    }
+  } catch (err) {
+    console.warn('DB lookup in getSession fallback to token:', err)
+  }
 
-  return session.user
+  // 2. Stateless JWT verification fallback for serverless cold lambdas
+  if (payload.role && payload.email) {
+    return {
+      id: userId,
+      email: payload.email,
+      firstName: payload.firstName || 'User',
+      lastName: payload.lastName || '',
+      role: payload.role,
+    }
+  }
+
+  return null
 }
 
 export async function requireAuth(): Promise<AuthUser> {

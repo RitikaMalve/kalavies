@@ -28,11 +28,10 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.error || 'Authentication failed')
 
       if (data.user.role === 'ADMIN') {
-        router.push('/admin')
+        window.location.href = '/admin'
       } else {
-        router.push('/account')
+        window.location.href = '/account'
       }
-      router.refresh()
     } catch (err: any) {
       setError(err.message || 'Login error')
     } finally {
