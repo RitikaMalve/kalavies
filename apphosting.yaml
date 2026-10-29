@@ -1,0 +1,18 @@
+runConfig:
+  cpu: 1
+  memoryMiB: 1024
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 80
+
+env:
+  - variable: NEXT_PUBLIC_APP_URL
+    value: "https://kalavies.com"
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "kalavies"
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "kalavies.firebaseapp.com"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "kalavies.firebasestorage.app"
+  - variable: DATABASE_URL
+    value: "file:./dev.db"
