@@ -22,11 +22,6 @@ if (!getApps().length) {
         }),
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
       })
-    } else {
-      adminApp = initializeApp({
-        projectId,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
-      })
     }
   } catch (error) {
     console.warn('Firebase admin initialization notice:', error)

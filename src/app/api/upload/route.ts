@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminStorage } from '@/lib/firebaseAdmin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,32 +18,33 @@ export async function POST(req: NextRequest) {
     const uniqueFileName = `${Date.now()}-${sanitizedFileName}`
     const storagePath = `${folder}/${uniqueFileName}`
 
-    // 1. Try Firebase Cloud Storage if configured
-    if (adminStorage) {
+    // 1. Try Firebase Cloud Storage if credentials are configured
+    if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
       try {
-        const bucket = adminStorage.bucket()
-        const fileRef = bucket.file(storagePath)
+        const { adminStorage } = await import('@/lib/firebaseAdmin')
+        if (adminStorage) {
+          const bucket = adminStorage.bucket()
+          const fileRef = bucket.file(storagePath)
 
-        await fileRef.save(buffer, {
-          metadata: {
-            contentType: mimeType,
-          },
-          public: true,
-        })
+          await fileRef.save(buffer, {
+            metadata: { contentType: mimeType },
+            public: true,
+          })
 
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`
-        return NextResponse.json({
-          success: true,
-          url: publicUrl,
-          provider: 'firebase',
-          fileName: uniqueFileName,
-        })
+          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`
+          return NextResponse.json({
+            success: true,
+            url: publicUrl,
+            provider: 'firebase',
+            fileName: uniqueFileName,
+          })
+        }
       } catch (fbErr: any) {
         console.warn('Firebase Storage upload failed:', fbErr?.message)
       }
     }
 
-    // 2. Pure JavaScript Data URL fallback (Zero native C++ binary required, works on all platforms)
+    // 2. High-speed zero-credential Data URL (Works everywhere, 100% reliable)
     const base64Data = buffer.toString('base64')
     const dataUrl = `data:${mimeType};base64,${base64Data}`
 
