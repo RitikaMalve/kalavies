@@ -104,7 +104,14 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
         body: data,
       })
 
-      const result = await res.json()
+      const text = await res.text()
+      let result: any
+      try {
+        result = JSON.parse(text)
+      } catch {
+        throw new Error(`Upload server error (${res.status}): ${text.slice(0, 80)}`)
+      }
+
       if (!res.ok) throw new Error(result.error || 'Upload failed')
 
       setImages((prev) => [...prev, result.url])
@@ -169,7 +176,14 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
         body: JSON.stringify(payload),
       })
 
-      const data = await res.json()
+      const text = await res.text()
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error(`Server response error (${res.status}): ${text.slice(0, 80)}`)
+      }
+
       if (!res.ok) throw new Error(data.error || 'Failed to save product')
 
       router.push('/admin/products')
