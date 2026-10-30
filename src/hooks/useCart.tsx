@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, useCallback, useEffect, useState, type ReactNode } from 'react'
 
-interface CartItemData {
+export interface CartItemData {
   id: string
   productId: string
   variantId?: string
@@ -40,23 +40,28 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         i => i.productId === action.item.productId && i.variantId === action.item.variantId
       )
       if (existing) {
+        const limit = action.item.maxStock ?? existing.maxStock ?? 9999
         return {
           ...state,
           items: state.items.map(i =>
             i.productId === action.item.productId && i.variantId === action.item.variantId
-              ? { ...i, quantity: Math.min(i.quantity + action.item.quantity, i.maxStock) }
+              ? { ...i, quantity: Math.min(i.quantity + action.item.quantity, limit) }
               : i
           ),
         }
       }
-      return { ...state, items: [...state.items, action.item] }
+      const limit = action.item.maxStock ?? 9999
+      return {
+        ...state,
+        items: [...state.items, { ...action.item, quantity: Math.min(action.item.quantity, limit) }],
+      }
     }
     case 'UPDATE_QUANTITY':
       return {
         ...state,
         items: state.items.map(i =>
           i.productId === action.productId && i.variantId === action.variantId
-            ? { ...i, quantity: Math.min(Math.max(1, action.quantity), i.maxStock) }
+            ? { ...i, quantity: Math.min(Math.max(1, action.quantity), i.maxStock ?? 9999) }
             : i
         ),
       }
@@ -86,6 +91,9 @@ interface CartContextType {
   itemCount: number
   subtotal: number
   totalSavings: number
+  stockWarning: string | null
+  clearStockWarning: () => void
+  setStockWarning: (msg: string | null) => void
   addItem: (item: CartItemData) => Promise<void>
   updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => Promise<void>
   removeItem: (productId: string, variantId?: string) => Promise<void>
@@ -99,6 +107,15 @@ const CartContext = createContext<CartContextType | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], isOpen: false })
+  const [stockWarning, setStockWarning] = useState<string | null>(null)
+
+  // Clear stock warning after 6 seconds
+  useEffect(() => {
+    if (stockWarning) {
+      const timer = setTimeout(() => setStockWarning(null), 6000)
+      return () => clearTimeout(timer)
+    }
+  }, [stockWarning])
 
   // Load cart from API on mount
   useEffect(() => {
@@ -128,6 +145,59 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [state.items])
 
   const addItem = useCallback(async (item: CartItemData) => {
+    const existing = state.items.find(
+      i => i.productId === item.productId && i.variantId === item.variantId
+    )
+    const effectiveStock = item.maxStock ?? 9999
+
+    if (existing) {
+      if (existing.quantity >= effectiveStock) {
+        const msg = `Only ${effectiveStock} unit${effectiveStock > 1 ? 's' : ''} of "${item.name}" available in stock. You already have the maximum available quantity in your bag.`
+        setStockWarning(msg)
+        dispatch({ type: 'OPEN_CART' })
+        return
+      }
+      if (existing.quantity + item.quantity > effectiveStock) {
+        const allowed = effectiveStock - existing.quantity
+        const msg = `Only ${effectiveStock} unit${effectiveStock > 1 ? 's' : ''} of "${item.name}" available in stock. Added ${allowed} more to reach the stock limit.`
+        setStockWarning(msg)
+        dispatch({ type: 'ADD_ITEM', item: { ...item, quantity: allowed } })
+        dispatch({ type: 'OPEN_CART' })
+        try {
+          await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: allowed,
+            }),
+          })
+        } catch {}
+        return
+      }
+    } else {
+      if (item.quantity > effectiveStock) {
+        const msg = `Only ${effectiveStock} unit${effectiveStock > 1 ? 's' : ''} of "${item.name}" available in stock. Added maximum available (${effectiveStock}) to your bag.`
+        setStockWarning(msg)
+        dispatch({ type: 'ADD_ITEM', item: { ...item, quantity: effectiveStock } })
+        dispatch({ type: 'OPEN_CART' })
+        try {
+          await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: effectiveStock,
+            }),
+          })
+        } catch {}
+        return
+      }
+    }
+
+    setStockWarning(null)
     dispatch({ type: 'ADD_ITEM', item })
     try {
       await fetch('/api/cart', {
@@ -140,9 +210,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }),
       })
     } catch {}
-  }, [])
+  }, [state.items])
 
   const updateQuantity = useCallback(async (productId: string, variantId: string | undefined, quantity: number) => {
+    const target = state.items.find(i => i.productId === productId && i.variantId === variantId)
+    if (target) {
+      const effectiveStock = target.maxStock ?? 9999
+      if (quantity > effectiveStock) {
+        const msg = `Only ${effectiveStock} unit${effectiveStock > 1 ? 's' : ''} of "${target.name}" available in stock. You have reached the maximum quantity.`
+        setStockWarning(msg)
+        dispatch({ type: 'UPDATE_QUANTITY', productId, variantId, quantity: effectiveStock })
+        return
+      }
+    }
+
+    setStockWarning(null)
     dispatch({ type: 'UPDATE_QUANTITY', productId, variantId, quantity })
     try {
       await fetch('/api/cart', {
@@ -151,9 +233,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ productId, variantId, quantity }),
       })
     } catch {}
-  }, [])
+  }, [state.items])
 
   const removeItem = useCallback(async (productId: string, variantId?: string) => {
+    setStockWarning(null)
     dispatch({ type: 'REMOVE_ITEM', productId, variantId })
     try {
       await fetch('/api/cart', {
@@ -165,6 +248,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const clearCart = useCallback(async () => {
+    setStockWarning(null)
     dispatch({ type: 'CLEAR' })
     try {
       await fetch('/api/cart/clear', { method: 'POST' })
@@ -183,6 +267,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         itemCount,
         subtotal,
         totalSavings,
+        stockWarning,
+        clearStockWarning: () => setStockWarning(null),
+        setStockWarning,
         addItem,
         updateQuantity,
         removeItem,

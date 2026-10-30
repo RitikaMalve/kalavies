@@ -133,12 +133,19 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Product Info */}
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          {product.category && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#C9A84C]">
-              {product.category.name}
-            </span>
-          )}
-          <Link href={`/products/${product.slug}`} className="block">
+          <div className="flex items-center justify-between">
+            {product.category && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#C9A84C]">
+                {product.category.name}
+              </span>
+            )}
+            {product.totalStock > 0 && product.totalStock <= 3 && (
+              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                Only {product.totalStock} left
+              </span>
+            )}
+          </div>
+          <Link href={`/products/${product.slug}`} className="block mt-0.5">
             <h3 className="font-semibold text-sm text-[#2D2D2D] line-clamp-1 hover:text-[#C9A84C] transition">
               {product.name}
             </h3>

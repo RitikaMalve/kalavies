@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Award } from 'lucide-react'
+import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Award, AlertTriangle, AlertCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -46,7 +46,7 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const router = useRouter()
-  const { addItem, openCart } = useCart()
+  const { addItem, openCart, items } = useCart()
   const { isInWishlist, toggleItem } = useWishlist()
 
   const [selectedImage, setSelectedImage] = useState<string>(
@@ -59,11 +59,19 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [pincode, setPincode] = useState('')
   const [deliveryChecked, setDeliveryChecked] = useState(false)
   const [activeTab, setActiveTab] = useState<'DETAILS' | 'CARE' | 'SHIPPING'>('DETAILS')
+  const [stockNotice, setStockNotice] = useState<string | null>(null)
 
   const currentPrice = selectedVariant?.price || product.sellingPrice
   const currentMrp = selectedVariant?.mrp || product.mrp
   const currentStock = selectedVariant ? selectedVariant.stock : product.totalStock
   const isOutOfStock = currentStock === 0
+
+  const cartItem = items.find(
+    (i) => i.productId === product.id && i.variantId === selectedVariant?.id
+  )
+  const inCartQty = cartItem?.quantity || 0
+  const remainingStock = Math.max(0, currentStock - inCartQty)
+  const isMaxStockInCart = !isOutOfStock && inCartQty >= currentStock
 
   const discountPercent =
     currentMrp > currentPrice
@@ -74,7 +82,21 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const handleAddToCart = () => {
     if (isOutOfStock) return
+    if (inCartQty >= currentStock) {
+      setStockNotice(
+        `Only ${currentStock} unit${currentStock > 1 ? 's' : ''} in stock. You already have all available units in your bag.`
+      )
+      openCart()
+      return
+    }
+    if (quantity > remainingStock) {
+      setStockNotice(
+        `Only ${currentStock} unit${currentStock > 1 ? 's' : ''} in stock (${inCartQty} already in your bag). You can only add ${remainingStock} more.`
+      )
+      return
+    }
 
+    setStockNotice(null)
     addItem({
       id: selectedVariant ? `${product.id}-${selectedVariant.id}` : `${product.id}-default`,
       productId: product.id,
@@ -93,7 +115,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const handleBuyNow = () => {
     handleAddToCart()
-    router.push('/checkout')
+    if (!isOutOfStock && !isMaxStockInCart) {
+      router.push('/checkout')
+    }
   }
 
   return (
@@ -242,43 +266,90 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           )}
         </div>
 
+        {/* Stock Notice & Max Stock Alerts */}
+        {stockNotice && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs font-semibold text-amber-900 flex items-start gap-2 shadow-sm animate-fadeIn">
+            <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{stockNotice}</span>
+          </div>
+        )}
+
+        {isMaxStockInCart && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
+            <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Maximum Stock in Bag</p>
+              <p className="text-[11px] text-amber-800 mt-0.5">
+                You already have all {currentStock} available unit{currentStock > 1 ? 's' : ''} in your shopping bag.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Quantity and Actions */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center gap-4">
             <span className="text-xs font-bold uppercase text-[#2D2D2D]">Quantity:</span>
             <div className="flex items-center border border-[#E8E3DC] bg-white rounded-lg">
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="px-3 py-1 text-sm font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30"
+                onClick={() => {
+                  setStockNotice(null)
+                  setQuantity(Math.max(1, quantity - 1))
+                }}
+                disabled={quantity <= 1 || isOutOfStock || isMaxStockInCart}
+                className="px-3 py-1 text-sm font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30 cursor-pointer"
               >
                 -
               </button>
               <span className="px-3 text-sm font-semibold text-[#2D2D2D]">{quantity}</span>
               <button
-                onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-                disabled={quantity >= currentStock}
-                className="px-3 py-1 text-sm font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30"
+                onClick={() => {
+                  if (quantity >= remainingStock) {
+                    setStockNotice(
+                      `Only ${currentStock} unit${currentStock > 1 ? 's' : ''} in stock.${inCartQty > 0 ? ` (${inCartQty} already in your bag)` : ''} Cannot add more.`
+                    )
+                  } else {
+                    setStockNotice(null)
+                    setQuantity(quantity + 1)
+                  }
+                }}
+                disabled={quantity >= remainingStock || isOutOfStock || isMaxStockInCart}
+                className="px-3 py-1 text-sm font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30 cursor-pointer"
               >
                 +
               </button>
             </div>
+            {remainingStock > 0 && inCartQty > 0 && (
+              <span className="text-[11px] text-[#6B6B6B]">
+                ({inCartQty} in bag, {remainingStock} left)
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#2D2D2D] bg-white py-3.5 text-sm font-bold text-[#2D2D2D] shadow-sm hover:bg-[#2D2D2D] hover:text-white transition disabled:opacity-40"
+              disabled={isOutOfStock || isMaxStockInCart}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#2D2D2D] bg-white py-3.5 text-sm font-bold text-[#2D2D2D] shadow-sm hover:bg-[#2D2D2D] hover:text-white transition disabled:opacity-40 cursor-pointer"
             >
-              <ShoppingBag size={18} /> Add to Bag
+              <ShoppingBag size={18} />
+              {isOutOfStock
+                ? 'Out of Stock'
+                : isMaxStockInCart
+                ? `Max in Bag (${currentStock})`
+                : 'Add to Bag'}
             </button>
             <button
               onClick={handleBuyNow}
-              disabled={isOutOfStock}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-40"
+              disabled={isOutOfStock || isMaxStockInCart}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-40 cursor-pointer"
             >
-              <Zap size={18} /> Buy Now
+              <Zap size={18} />
+              {isOutOfStock
+                ? 'Out of Stock'
+                : isMaxStockInCart
+                ? `Max in Bag (${currentStock})`
+                : 'Buy Now'}
             </button>
           </div>
         </div>

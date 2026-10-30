@@ -3,14 +3,34 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, Trash2, ArrowRight, Tag, ShieldCheck, Truck, ChevronRight } from 'lucide-react'
+import {
+  ShoppingBag,
+  Trash2,
+  ArrowRight,
+  Tag,
+  ShieldCheck,
+  Truck,
+  ChevronRight,
+  AlertTriangle,
+  AlertCircle,
+  X,
+} from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import StoreLayoutClient from '@/components/store/StoreLayoutClient'
 
 export default function CartPage() {
   const router = useRouter()
-  const { items, subtotal, removeItem, updateQuantity, clearCart } = useCart()
+  const {
+    items,
+    subtotal,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    stockWarning,
+    clearStockWarning,
+    setStockWarning,
+  } = useCart()
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('')
@@ -88,6 +108,22 @@ export default function CartPage() {
           <ChevronRight size={12} />
           <span className="font-semibold text-[#2D2D2D]">Shopping Bag</span>
         </div>
+
+        {/* Stock Warning Alert Banner */}
+        {stockWarning && (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs font-semibold text-amber-900 flex items-start justify-between gap-3 shadow-sm">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{stockWarning}</span>
+            </div>
+            <button
+              onClick={clearStockWarning}
+              className="text-amber-700 hover:text-black shrink-0 p-1 cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <h1
@@ -195,6 +231,13 @@ export default function CartPage() {
                             </span>
                           )}
                         </div>
+
+                        {item.quantity >= (item.maxStock ?? 9999) && (
+                          <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5">
+                            <AlertCircle size={13} className="text-amber-600 shrink-0" />
+                            <span>Only {item.maxStock} in stock (Maximum limit reached)</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between pt-3">
@@ -202,7 +245,7 @@ export default function CartPage() {
                           <button
                             onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
                             disabled={item.quantity <= 1}
-                            className="px-3 py-1 text-xs font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30"
+                            className="px-3 py-1 text-xs font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30 cursor-pointer"
                           >
                             -
                           </button>
@@ -210,9 +253,25 @@ export default function CartPage() {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
-                            disabled={item.quantity >= item.maxStock}
-                            className="px-3 py-1 text-xs font-bold text-[#6B6B6B] hover:text-black disabled:opacity-30"
+                            onClick={() => {
+                              if (item.quantity >= (item.maxStock ?? 9999)) {
+                                setStockWarning(
+                                  `Only ${item.maxStock} unit${item.maxStock > 1 ? 's' : ''} of "${item.name}" available in stock. Cannot add more.`
+                                )
+                              } else {
+                                updateQuantity(item.productId, item.variantId, item.quantity + 1)
+                              }
+                            }}
+                            className={`px-3 py-1 text-xs font-bold transition cursor-pointer ${
+                              item.quantity >= (item.maxStock ?? 9999)
+                                ? 'text-amber-500 hover:text-amber-700 bg-amber-50/50'
+                                : 'text-[#6B6B6B] hover:text-black'
+                            }`}
+                            title={
+                              item.quantity >= (item.maxStock ?? 9999)
+                                ? `Stock limit: ${item.maxStock}`
+                                : 'Increase quantity'
+                            }
                           >
                             +
                           </button>

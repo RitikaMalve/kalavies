@@ -187,6 +187,14 @@ export default function CheckoutPage() {
       return
     }
 
+    const stockExceededItem = items.find((i) => i.quantity > (i.maxStock ?? 9999))
+    if (stockExceededItem) {
+      setError(
+        `Only ${stockExceededItem.maxStock} unit(s) of "${stockExceededItem.name}" available in stock. Please adjust your bag quantity.`
+      )
+      return
+    }
+
     const cleanPhone = phone.replace(/\D/g, '').slice(-10)
     if (cleanPhone.length < 10) {
       setError('Please provide a valid 10-digit mobile phone number')
@@ -606,7 +614,14 @@ export default function CheckoutPage() {
                   <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
                     <div className="min-w-0 flex-1 pr-2">
                       <p className="font-semibold text-[#2D2D2D] line-clamp-1">{item.name}</p>
-                      <p className="text-[#6B6B6B]">Qty: {item.quantity}</p>
+                      <p className="text-[#6B6B6B]">
+                        Qty: {item.quantity}
+                        {item.quantity >= (item.maxStock ?? 9999) && (
+                          <span className="ml-2 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                            (Max {item.maxStock} in stock)
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <span className="font-bold text-[#2D2D2D]">
                       {formatPrice(item.price * item.quantity)}

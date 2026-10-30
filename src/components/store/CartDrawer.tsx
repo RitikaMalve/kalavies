@@ -4,10 +4,20 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
-import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
+import { X, Trash2, ShoppingBag, ArrowRight, AlertTriangle, AlertCircle } from 'lucide-react'
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, subtotal, removeItem, updateQuantity } = useCart()
+  const {
+    items,
+    isOpen,
+    closeCart,
+    subtotal,
+    removeItem,
+    updateQuantity,
+    stockWarning,
+    clearStockWarning,
+    setStockWarning,
+  } = useCart()
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(699)
 
   useEffect(() => {
@@ -45,11 +55,28 @@ export default function CartDrawer() {
             </div>
             <button
               onClick={closeCart}
-              className="rounded-lg p-1.5 text-[#6B6B6B] hover:bg-gray-100 transition"
+              className="rounded-lg p-1.5 text-[#6B6B6B] hover:bg-gray-100 transition cursor-pointer"
             >
               <X size={18} />
             </button>
           </div>
+
+          {/* Stock Limit Warning Notification Banner */}
+          {stockWarning && (
+            <div className="bg-amber-50 border-b border-amber-200 px-5 py-3 text-xs text-amber-900 flex items-start justify-between gap-3 animate-fadeIn">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <span className="font-medium leading-relaxed">{stockWarning}</span>
+              </div>
+              <button
+                onClick={clearStockWarning}
+                className="text-amber-700 hover:text-black shrink-0 p-0.5"
+                title="Dismiss"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
 
           {/* Free Shipping Meter */}
           <div className="bg-[#FAF8F5] px-6 py-3 border-b border-[#E8E3DC]">
@@ -93,60 +120,83 @@ export default function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              items.map((item) => (
-                <div key={item.id} className="py-4 flex gap-3">
-                  <div className="h-20 w-20 shrink-0 rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] overflow-hidden flex items-center justify-center">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-[#C9A84C]">KLV</span>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#2D2D2D] line-clamp-1">{item.name}</h4>
-                      {item.variantName && (
-                        <p className="text-xs text-[#6B6B6B]">Size/Color: {item.variantName}</p>
+              items.map((item) => {
+                const isAtMaxStock = item.quantity >= (item.maxStock ?? 9999)
+                return (
+                  <div key={item.id} className="py-4 flex gap-3">
+                    <div className="h-20 w-20 shrink-0 rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] overflow-hidden flex items-center justify-center">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-[#C9A84C]">KLV</span>
                       )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-bold text-[#2D2D2D]">{formatPrice(item.price)}</span>
-                        {item.mrp > item.price && (
-                          <span className="text-xs text-[#6B6B6B] line-through">{formatPrice(item.mrp)}</span>
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-[#2D2D2D] line-clamp-1">{item.name}</h4>
+                        {item.variantName && (
+                          <p className="text-xs text-[#6B6B6B]">Size/Color: {item.variantName}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm font-bold text-[#2D2D2D]">{formatPrice(item.price)}</span>
+                          {item.mrp > item.price && (
+                            <span className="text-xs text-[#6B6B6B] line-through">{formatPrice(item.mrp)}</span>
+                          )}
+                        </div>
+
+                        {/* Stock Limit Badge */}
+                        {isAtMaxStock && (
+                          <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                            <AlertCircle size={12} className="text-amber-600 shrink-0" />
+                            <span>Only {item.maxStock} in stock (Max added)</span>
+                          </div>
                         )}
                       </div>
-                    </div>
 
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center border border-[#E8E3DC] rounded-lg">
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center border border-[#E8E3DC] rounded-lg">
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                            className="px-2.5 py-0.5 text-xs font-bold text-[#6B6B6B] hover:text-[#2D2D2D] disabled:opacity-30 cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="px-2 text-xs font-semibold text-[#2D2D2D]">{item.quantity}</span>
+                          <button
+                            onClick={() => {
+                              if (isAtMaxStock) {
+                                setStockWarning(
+                                  `Only ${item.maxStock} unit${item.maxStock > 1 ? 's' : ''} of "${item.name}" available in stock. Cannot add more.`
+                                )
+                              } else {
+                                updateQuantity(item.productId, item.variantId, item.quantity + 1)
+                              }
+                            }}
+                            className={`px-2.5 py-0.5 text-xs font-bold transition cursor-pointer ${
+                              isAtMaxStock
+                                ? 'text-amber-500 hover:text-amber-700 bg-amber-50/50'
+                                : 'text-[#6B6B6B] hover:text-[#2D2D2D]'
+                            }`}
+                            title={isAtMaxStock ? `Stock limit: ${item.maxStock}` : 'Increase quantity'}
+                          >
+                            +
+                          </button>
+                        </div>
+
                         <button
-                          onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
-                          className="px-2.5 py-0.5 text-xs font-bold text-[#6B6B6B] hover:text-[#2D2D2D] disabled:opacity-30"
+                          onClick={() => removeItem(item.productId, item.variantId)}
+                          className="text-[#6B6B6B] hover:text-red-600 transition p-1 cursor-pointer"
+                          title="Remove"
                         >
-                          -
-                        </button>
-                        <span className="px-2 text-xs font-semibold text-[#2D2D2D]">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
-                          disabled={item.quantity >= item.maxStock}
-                          className="px-2.5 py-0.5 text-xs font-bold text-[#6B6B6B] hover:text-[#2D2D2D] disabled:opacity-30"
-                        >
-                          +
+                          <Trash2 size={15} />
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => removeItem(item.productId, item.variantId)}
-                        className="text-[#6B6B6B] hover:text-red-600 transition p-1"
-                        title="Remove"
-                      >
-                        <Trash2 size={15} />
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
 
