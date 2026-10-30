@@ -14,8 +14,15 @@ import {
   ExternalLink,
   Sparkles,
   Percent,
+  Eye,
+  Camera,
+  FileCheck,
+  Crop,
+  Plus,
 } from 'lucide-react'
 import { uploadProductImage } from '@/lib/storageHelper'
+import ImageCropModal from './ImageCropModal'
+import ProductPreviewModal from './ProductPreviewModal'
 
 interface Category {
   id: string
@@ -29,13 +36,21 @@ interface ProductFormProps {
   isEditing?: boolean
 }
 
+// Character limits
+const LIMITS = {
+  TITLE: 100,
+  SHORT_DESC: 300,
+  DETAILED_DESC: 2000,
+  MAX_FILE_SIZE_MB: 10,
+}
+
 // Helper to generate SKU based on title keywords
 function generateSkuFromTitle(title: string): string {
   if (!title.trim()) return ''
   const t = title.toLowerCase()
   const parts: string[] = ['KLV']
 
-  // Category & style detection (anti-oxi, oxidised, kundan, temple, etc.)
+  // Category & style detection
   if (
     t.includes('anti-oxi') ||
     t.includes('anti oxi') ||
@@ -48,16 +63,12 @@ function generateSkuFromTitle(title: string): string {
     parts.push('KDN')
   } else if (t.includes('temple')) {
     parts.push('TMP')
-  } else if (t.includes('polki')) {
-    parts.push('PLK')
-  } else if (t.includes('meenakari')) {
-    parts.push('MNK')
-  } else if (t.includes('pearl') || t.includes('moti')) {
-    parts.push('PRL')
   }
 
-  // Item type detection
-  if (t.includes('jhumk')) {
+  // Item type detection for Kalavies 6 categories
+  if (t.includes('nose') || t.includes('nath') || t.includes('pin')) {
+    parts.push('NTH')
+  } else if (t.includes('jhumk')) {
     parts.push('JHM')
   } else if (t.includes('chandbali')) {
     parts.push('CHB')
@@ -71,25 +82,17 @@ function generateSkuFromTitle(title: string): string {
     parts.push('BGL')
   } else if (t.includes('ring') || t.includes('anguthi')) {
     parts.push('RNG')
-  } else if (t.includes('nath') || t.includes('nose')) {
-    parts.push('NTH')
-  } else if (t.includes('payal') || t.includes('anklet')) {
-    parts.push('PYL')
-  } else if (t.includes('pendant') || t.includes('locket')) {
-    parts.push('PND')
   } else if (t.includes('set') || t.includes('combo')) {
     parts.push('SET')
   }
 
-  // If no specific keyword matched, extract initials from title words
   if (parts.length === 1) {
     const cleanWords = t.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean)
     const initials = cleanWords.slice(0, 2).map((w) => w.slice(0, 3).toUpperCase()).join('-')
     if (initials) parts.push(initials)
-    else parts.push('PRD')
+    else parts.push('JWL')
   }
 
-  // Suffix: random 3-digit number for uniqueness
   const randomNum = Math.floor(100 + Math.random() * 900)
   return `${parts.join('-')}-${randomNum}`
 }
@@ -98,12 +101,14 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [successCreated, setSuccessCreated] = useState<{
     name: string
     slug: string
     sku: string
     sellingPrice: number
     mrp: number
+    status: string
   } | null>(null)
 
   const defaultCategoryId =
@@ -117,7 +122,7 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
   const [discountPercent, setDiscountPercent] = useState<number>(initialDiscount)
   const [isSkuManuallyEdited, setIsSkuManuallyEdited] = useState(Boolean(initialData?.sku))
 
-  // SKU uniqueness check state
+  // SKU check state
   const [skuCheck, setSkuCheck] = useState<{
     status: 'idle' | 'checking' | 'available' | 'taken'
     message: string
@@ -156,18 +161,31 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     metaDescription: initialData?.metaDescription || '',
   })
 
-  // Images state
+  // Images state (Slot-based image array)
   const [images, setImages] = useState<string[]>(
     initialData?.images?.map((img: any) => img.url) || []
   )
-  const [newImageUrl, setNewImageUrl] = useState('')
 
-  // Variants state
+  // Crop modal state
+  const [cropModal, setCropModal] = useState<{
+    isOpen: boolean
+    imageSrc: string
+    fileName: string
+    targetSlotIndex: number
+  }>({
+    isOpen: false,
+    imageSrc: '',
+    fileName: '',
+    targetSlotIndex: 0,
+  })
+
+  const [uploadingSlot, setUploadingSlot] = useState<number | null>(null)
   const [variants, setVariants] = useState<any[]>(initialData?.variants || [])
-  const [uploading, setUploading] = useState(false)
 
-  // Title change -> auto slug & auto SKU (if not manually edited)
+  // Title change with limit
   const handleNameChange = (name: string) => {
+    if (name.length > LIMITS.TITLE) return
+
     const slug = name
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
@@ -239,18 +257,10 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     return () => clearTimeout(timer)
   }, [formData.sku, isEditing, initialData?.id])
 
-  // ==========================================
-  // PRICING CALCULATION LOGIC
-  // 1. Cost Price -> Auto double Selling Price (costPrice * 2)
-  // 2. Selling Price + Discount Percent -> Auto calculate MRP
-  // ==========================================
-
-  // When Cost Price is changed
+  // Pricing calculations
   const handleCostPriceChange = (val: number) => {
     const cost = Math.max(0, val)
-    // Double the rate automatically
     const autoSelling = cost > 0 ? Math.round(cost * 2) : 0
-    // Calculate MRP based on selected discount percentage
     const autoMrp =
       discountPercent > 0 && autoSelling > 0
         ? Math.round(autoSelling / (1 - discountPercent / 100))
@@ -264,7 +274,6 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     }))
   }
 
-  // When Selling Price is changed directly (editable)
   const handleSellingPriceChange = (val: number) => {
     const selling = Math.max(0, val)
     const autoMrp =
@@ -279,7 +288,6 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     }))
   }
 
-  // When Discount Percentage is changed / clicked
   const handleDiscountPercentChange = (percent: number) => {
     const pct = Math.max(0, Math.min(90, percent))
     setDiscountPercent(pct)
@@ -297,78 +305,82 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     }
   }
 
-  // When MRP is changed directly (editable)
   const handleMrpChange = (val: number) => {
     const mrp = Math.max(0, val)
     setFormData((prev) => ({ ...prev, mrp }))
 
-    // Update discount percentage indicator if MRP is higher than selling price
     if (mrp > formData.sellingPrice && formData.sellingPrice > 0) {
       const computedPct = Math.round(((mrp - formData.sellingPrice) / mrp) * 100)
       setDiscountPercent(computedPct)
     }
   }
 
-  // Profit Margin calculation
-  const profitMarginAmount = Math.max(0, formData.sellingPrice - formData.costPrice)
-  const profitMarginPercent =
-    formData.costPrice > 0
-      ? Math.round(((formData.sellingPrice - formData.costPrice) / formData.costPrice) * 100)
-      : formData.sellingPrice > 0
-      ? 100
-      : 0
-
-  // Images handler
-  const addImage = () => {
-    if (newImageUrl.trim()) {
-      setImages([...images, newImageUrl.trim()])
-      setNewImageUrl('')
-    }
-  }
-
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index))
-  }
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File upload with size limit check & crop modal trigger
+  const handleSlotFileSelect = (slotIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setUploading(true)
+    // 1. Image Size Limit Check (Max 10MB)
+    const maxBytes = LIMITS.MAX_FILE_SIZE_MB * 1024 * 1024
+    if (file.size > maxBytes) {
+      setError(
+        `Image "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum allowed photo size is ${LIMITS.MAX_FILE_SIZE_MB}MB.`
+      )
+      if (e.target) e.target.value = ''
+      return
+    }
+
+    setError('')
+
+    // 2. Open Crop & Fit modal
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCropModal({
+        isOpen: true,
+        imageSrc: reader.result as string,
+        fileName: file.name,
+        targetSlotIndex: slotIndex,
+      })
+    }
+    reader.readAsDataURL(file)
+    if (e.target) e.target.value = ''
+  }
+
+  // Handle crop apply -> upload to server
+  const handleCropApply = async (croppedBlob: Blob, _previewUrl: string) => {
+    const targetSlot = cropModal.targetSlotIndex
+    setCropModal((prev) => ({ ...prev, isOpen: false }))
+    setUploadingSlot(targetSlot)
     setError('')
 
     try {
+      const file = new File([croppedBlob], `kalavies-${Date.now()}.webp`, {
+        type: 'image/webp',
+      })
       const uploadResult = await uploadProductImage(file, 'products')
-      setImages((prev) => [...prev, uploadResult.url])
+
+      setImages((prev) => {
+        const next = [...prev]
+        next[targetSlot] = uploadResult.url
+        return next
+      })
     } catch (err: any) {
       setError(err.message || 'Image upload failed')
     } finally {
-      setUploading(false)
-      if (e.target) e.target.value = ''
+      setUploadingSlot(null)
     }
   }
 
-  // Variants handler
-  const addVariant = () => {
-    setVariants([
-      ...variants,
-      {
-        name: 'Standard',
-        sku: `${formData.sku || 'KLV'}-V${variants.length + 1}`,
-        size: 'Free Size',
-        color: formData.colour,
-        price: formData.sellingPrice,
-        mrp: formData.mrp,
-        stock: 10,
-      },
-    ])
+  // Remove specific image slot
+  const removeSlotImage = (index: number) => {
+    setImages((prev) => {
+      const next = [...prev]
+      next.splice(index, 1)
+      return next
+    })
   }
 
-  const removeVariant = (index: number) => {
-    setVariants(variants.filter((_, i) => i !== index))
-  }
-
-  // Form Reset Function (cleans all fields after successful add)
+  // Reset form
   const resetAllFields = () => {
     setFormData({
       name: '',
@@ -399,18 +411,31 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     })
     setImages([])
     setVariants([])
-    setNewImageUrl('')
     setIsSkuManuallyEdited(false)
     setSkuCheck({ status: 'idle', message: '', suggested: '' })
   }
 
-  // Form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Submit Handler: supports both DRAFT and PUBLISHED
+  const handleFormSubmit = async (targetStatus: 'DRAFT' | 'PUBLISHED') => {
     setLoading(true)
     setError('')
 
-    // Prevent submission if SKU is already taken
+    // VALIDATION 1: Product Title
+    if (!formData.name.trim()) {
+      setError('Product Title is required.')
+      setLoading(false)
+      return
+    }
+
+    // VALIDATION 2: At least 1 image is COMPULSORY
+    const validImages = images.filter((img) => Boolean(img && img.trim()))
+    if (validImages.length === 0) {
+      setError('At least 1 product image is required (Slot 1 is compulsory).')
+      setLoading(false)
+      return
+    }
+
+    // VALIDATION 3: SKU duplicate check
     if (skuCheck.status === 'taken') {
       setError(`Cannot save: SKU "${formData.sku}" is already in use by another product.`)
       setLoading(false)
@@ -420,13 +445,14 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     try {
       const payload = {
         ...formData,
+        status: targetStatus,
         mrp: Number(formData.mrp),
         sellingPrice: Number(formData.sellingPrice),
         costPrice: Number(formData.costPrice),
         totalStock: Number(formData.totalStock),
         lowStockThreshold: Number(formData.lowStockThreshold),
         discountPercent: Number(discountPercent),
-        images,
+        images: validImages,
         variants,
       }
 
@@ -452,20 +478,18 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
       if (!res.ok) throw new Error(data.error || 'Failed to save product')
 
       if (isEditing) {
-        // Redirect back when editing
         router.push('/admin/products')
         router.refresh()
       } else {
-        // CLEAN ALL FIELDS after successfully adding product
         setSuccessCreated({
           name: payload.name,
           slug: payload.slug,
           sku: payload.sku,
           sellingPrice: payload.sellingPrice,
           mrp: payload.mrp,
+          status: targetStatus,
         })
         resetAllFields()
-        // Smoothly scroll to top so admin can see the confirmation and ready form
         if (typeof window !== 'undefined') {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }
@@ -477,541 +501,801 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     }
   }
 
+  // Slot labels
+  const slotLabels = [
+    { title: 'Image 1: Primary View', subtitle: 'Compulsory * (Front / Main Angle)' },
+    { title: 'Image 2: Side / Angle', subtitle: 'Recommended (Profile / Side View)' },
+    { title: 'Image 3: Close-Up Detail', subtitle: 'Recommended (Intricate Detailing)' },
+    { title: 'Image 4: On-Model / Back', subtitle: 'Recommended (Wearing / Packaging)' },
+  ]
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Top action bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/products"
-            className="rounded-lg border border-[#E8E3DC] bg-white p-2 text-[#6B6B6B] hover:bg-[#FAF8F5] transition"
-          >
-            <ArrowLeft size={18} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#2D2D2D]">
-              {isEditing ? `Edit: ${initialData.name}` : 'Add New Product'}
-            </h1>
-            <p className="text-xs text-[#6B6B6B]">
-              {isEditing
-                ? 'Update pricing, details, and stock'
-                : 'Smart SKU generation, 2x cost pricing, and instant live catalog sync'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {!isEditing && (
-            <button
-              type="button"
-              onClick={resetAllFields}
-              className="rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-xs font-semibold text-[#6B6B6B] hover:bg-[#FAF8F5] transition"
+    <>
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        {/* Top action bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/products"
+              className="rounded-lg border border-[#E8E3DC] bg-white p-2 text-[#6B6B6B] hover:bg-[#FAF8F5] transition"
             >
-              Clear Form
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={loading || skuCheck.status === 'taken'}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#C9A84C] px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-50"
-          >
-            <Save size={16} />
-            {loading ? 'Saving to Database...' : isEditing ? 'Update Product' : 'Add Product'}
-          </button>
-        </div>
-      </div>
-
-      {/* Success Banner when product is successfully added & form cleaned */}
-      {successCreated && (
-        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-900 shadow-sm animate-fadeIn">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-bold text-base text-emerald-900">
-                  Product Added Successfully!
-                </h3>
-                <p className="text-sm text-emerald-800 mt-0.5">
-                  <span className="font-semibold">"{successCreated.name}"</span> (SKU:{' '}
-                  <span className="font-mono font-bold">{successCreated.sku}</span>) is now live
-                  at ₹{successCreated.sellingPrice.toLocaleString('en-IN')}.
-                </p>
-                <p className="text-xs text-emerald-700 mt-1 font-medium">
-                  ✓ All fields have been automatically cleaned. You can immediately enter the next product below.
-                </p>
-                <div className="flex items-center gap-3 mt-3">
-                  <a
-                    href={`/products/${successCreated.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 transition"
-                  >
-                    View Live on Website <ExternalLink size={12} />
-                  </a>
-                  <Link
-                    href="/admin/products"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition"
-                  >
-                    View in Products List
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSuccessCreated(null)}
-              className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1 rounded"
-            >
-              ✕ Dismiss
-            </button>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200 flex items-start gap-2">
-          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-600" />
-          <div>{error}</div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left Column - 2 Cols Wide */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Basic Information */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-semibold text-[#2D2D2D]">Product Details</h3>
-
+              <ArrowLeft size={18} />
+            </Link>
             <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Product Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g. Anti-Oxidised Silver Jhumka Earrings"
-                className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-              <p className="mt-1 text-[11px] text-[#8C827A]">
-                Auto-generates URL Slug and SKU code (e.g. anti-oxi → KLV-AOX-...)
+              <h1 className="text-2xl font-bold tracking-tight text-[#2D2D2D]">
+                {isEditing ? `Edit: ${initialData.name}` : 'Add New Product'}
+              </h1>
+              <p className="text-xs text-[#6B6B6B]">
+                Oxidised jewellery catalog • At least 4 photo slots • Auto 2x price
               </p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Preview Button */}
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-xs font-semibold text-[#2D2D2D] hover:bg-[#FAF8F5] transition shadow-sm"
+            >
+              <Eye size={14} className="text-[#C9A84C]" />
+              <span>Preview Product</span>
+            </button>
+
+            {/* Save as Draft Option */}
+            <button
+              type="button"
+              disabled={loading || skuCheck.status === 'taken'}
+              onClick={() => handleFormSubmit('DRAFT')}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition disabled:opacity-50 shadow-sm"
+            >
+              <Save size={14} />
+              <span>Save as Draft</span>
+            </button>
+
+            {/* Make Live / Publish Option */}
+            <button
+              type="button"
+              disabled={loading || skuCheck.status === 'taken'}
+              onClick={() => handleFormSubmit('PUBLISHED')}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#C9A84C] px-5 py-2 text-xs font-bold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-50"
+            >
+              <FileCheck size={14} />
+              <span>{loading ? 'Saving...' : 'Publish & Make Live'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Success Banner */}
+        {successCreated && (
+          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-900 shadow-sm animate-fadeIn">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-base text-emerald-900">
+                    Product Successfully Saved ({successCreated.status === 'PUBLISHED' ? 'Live on Store' : 'Saved as Draft'})!
+                  </h3>
+                  <p className="text-sm text-emerald-800 mt-0.5">
+                    <span className="font-semibold">"{successCreated.name}"</span> (SKU:{' '}
+                    <span className="font-mono font-bold">{successCreated.sku}</span>) at ₹
+                    {successCreated.sellingPrice.toLocaleString('en-IN')}.
+                  </p>
+                  <p className="text-xs text-emerald-700 mt-1 font-medium">
+                    ✓ All fields and image slots have been cleared. Ready for your next product entry.
+                  </p>
+                  <div className="flex items-center gap-3 mt-3">
+                    <a
+                      href={`/products/${successCreated.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 transition"
+                    >
+                      View on Website <ExternalLink size={12} />
+                    </a>
+                    <Link
+                      href="/admin/products"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition"
+                    >
+                      View in Products List
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSuccessCreated(null)}
+                className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1 rounded"
+              >
+                ✕ Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200 flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-600" />
+            <div>{error}</div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Left Column - 2 Cols Wide */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Basic Information */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-lg font-semibold text-[#2D2D2D]">Product Details</h3>
+
+              {/* Title with live word/char counter */}
               <div>
-                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  URL Slug *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B]">
+                    Product Title *
+                  </label>
+                  <span
+                    className={`text-[11px] font-mono ${
+                      formData.name.length >= LIMITS.TITLE
+                        ? 'text-red-600 font-bold'
+                        : 'text-[#8C827A]'
+                    }`}
+                  >
+                    {formData.name.length}/{LIMITS.TITLE} chars
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  maxLength={LIMITS.TITLE}
+                  value={formData.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="e.g. Anti-Oxidised Silver Jhumka Earrings"
+                  className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-[#8C827A]">
+                  Auto-generates URL Slug and SKU (e.g. anti-oxi → KLV-AOX-...)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    URL Slug *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold uppercase text-[#6B6B6B]">
+                      SKU Code *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateSku}
+                      disabled={!formData.name.trim()}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#C9A84C] hover:text-[#B8963B] disabled:opacity-40"
+                    >
+                      <RefreshCw size={11} /> Auto-Generate
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.sku}
+                      onChange={(e) => {
+                        setIsSkuManuallyEdited(true)
+                        setFormData({ ...formData, sku: e.target.value.toUpperCase() })
+                      }}
+                      placeholder="KLV-AOX-001"
+                      className={`w-full rounded-lg border px-3.5 py-2.5 text-sm uppercase font-mono tracking-wider focus:outline-none ${
+                        skuCheck.status === 'taken'
+                          ? 'border-red-400 bg-red-50 text-red-900 focus:border-red-500'
+                          : skuCheck.status === 'available'
+                          ? 'border-emerald-400 bg-emerald-50 text-emerald-900 focus:border-emerald-500'
+                          : 'border-[#E8E3DC] focus:border-[#C9A84C]'
+                      }`}
+                    />
+                    {skuCheck.status === 'checking' && (
+                      <span className="absolute right-3 top-3 text-[11px] text-[#8C827A] flex items-center gap-1">
+                        <RefreshCw size={12} className="animate-spin" /> checking...
+                      </span>
+                    )}
+                    {skuCheck.status === 'available' && (
+                      <span className="absolute right-3 top-2.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 flex items-center gap-1">
+                        <CheckCircle2 size={11} /> Available
+                      </span>
+                    )}
+                    {skuCheck.status === 'taken' && (
+                      <span className="absolute right-3 top-2.5 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800 flex items-center gap-1">
+                        <AlertCircle size={11} /> Already In Use
+                      </span>
+                    )}
+                  </div>
+                  {skuCheck.status === 'taken' && (
+                    <div className="mt-1.5 p-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800">
+                      <p>{skuCheck.message}</p>
+                      {skuCheck.suggested && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, sku: skuCheck.suggested }))
+                            setIsSkuManuallyEdited(true)
+                          }}
+                          className="mt-1 font-semibold text-red-900 underline hover:text-red-700"
+                        >
+                          Use suggested: {skuCheck.suggested}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Short Description with live counter */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B]">
+                    Short Description (Max {LIMITS.SHORT_DESC} chars)
+                  </label>
+                  <span
+                    className={`text-[11px] font-mono ${
+                      formData.description.length >= LIMITS.SHORT_DESC
+                        ? 'text-red-600 font-bold'
+                        : 'text-[#8C827A]'
+                    }`}
+                  >
+                    {formData.description.length}/{LIMITS.SHORT_DESC} chars
+                  </span>
+                </div>
+                <textarea
+                  rows={2}
+                  maxLength={LIMITS.SHORT_DESC}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Handcrafted ethnic oxidised jewellery with intricate detailing..."
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
                 />
               </div>
 
+              {/* Detailed Content with live counter */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-semibold uppercase text-[#6B6B6B]">
-                    SKU Code *
+                    Detailed Product Information & Care (Max {LIMITS.DETAILED_DESC} chars)
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleRegenerateSku}
-                    disabled={!formData.name.trim()}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#C9A84C] hover:text-[#B8963B] disabled:opacity-40"
-                    title="Generate fresh SKU code from title"
-                  >
-                    <RefreshCw size={11} /> Auto-Generate
-                  </button>
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={formData.sku}
-                    onChange={(e) => {
-                      setIsSkuManuallyEdited(true)
-                      setFormData({ ...formData, sku: e.target.value.toUpperCase() })
-                    }}
-                    placeholder="KLV-AOX-001"
-                    className={`w-full rounded-lg border px-3.5 py-2.5 text-sm uppercase font-mono tracking-wider focus:outline-none ${
-                      skuCheck.status === 'taken'
-                        ? 'border-red-400 bg-red-50 text-red-900 focus:border-red-500'
-                        : skuCheck.status === 'available'
-                        ? 'border-emerald-400 bg-emerald-50 text-emerald-900 focus:border-emerald-500'
-                        : 'border-[#E8E3DC] focus:border-[#C9A84C]'
+                  <span
+                    className={`text-[11px] font-mono ${
+                      formData.detailedContent.length >= LIMITS.DETAILED_DESC
+                        ? 'text-red-600 font-bold'
+                        : 'text-[#8C827A]'
                     }`}
+                  >
+                    {formData.detailedContent.length}/{LIMITS.DETAILED_DESC} chars
+                  </span>
+                </div>
+                <textarea
+                  rows={4}
+                  maxLength={LIMITS.DETAILED_DESC}
+                  value={formData.detailedContent}
+                  onChange={(e) => setFormData({ ...formData, detailedContent: e.target.value })}
+                  placeholder="Specifications, Styling Tips, Care instructions (Keep away from water & perfume)..."
+                  className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* PRODUCT IMAGERY - 4 DEDICATED SLOTS (SLOT 1 COMPULSORY) + CROP/FIT */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E3DC] pb-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#2D2D2D] flex items-center gap-2">
+                    <Camera size={18} className="text-[#C9A84C]" />
+                    <span>Product Imagery</span>
+                    <span className="text-xs font-normal text-[#8C827A]">
+                      (Slot 1 Required • Up to 4+ Photos)
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#8C827A] mt-0.5">
+                    Crop (1:1 Square) or Fit in Size available • Max photo size {LIMITS.MAX_FILE_SIZE_MB}MB
+                  </p>
+                </div>
+                <span className="text-xs bg-amber-50 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-md font-medium">
+                  {images.filter(Boolean).length} / 4 Slots Filled
+                </span>
+              </div>
+
+              {/* 4 Dedicated Slots Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[0, 1, 2, 3].map((slotIdx) => {
+                  const imgUrl = images[slotIdx]
+                  const slotInfo = slotLabels[slotIdx]
+                  const isCompulsory = slotIdx === 0
+                  const isUploading = uploadingSlot === slotIdx
+
+                  return (
+                    <div
+                      key={slotIdx}
+                      className={`relative rounded-xl border-2 overflow-hidden flex flex-col transition ${
+                        imgUrl
+                          ? 'border-[#C9A84C] bg-[#FAF8F5]'
+                          : isCompulsory
+                          ? 'border-dashed border-red-300 bg-red-50/20'
+                          : 'border-dashed border-[#E8E3DC] bg-[#FAF8F5]/50'
+                      }`}
+                    >
+                      {/* Slot Header Banner */}
+                      <div className="p-2 border-b border-[#E8E3DC]/60 flex items-center justify-between text-[11px] bg-white">
+                        <span className="font-bold text-[#2D2D2D] truncate">
+                          {isCompulsory ? (
+                            <span className="text-red-700 font-extrabold">Slot 1 (Required *)</span>
+                          ) : (
+                            `Slot ${slotIdx + 1}`
+                          )}
+                        </span>
+                        {imgUrl && (
+                          <span className="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-1.5 py-0.2 rounded">
+                            Added
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Photo Preview / Upload Trigger Area */}
+                      <div className="relative aspect-square w-full flex items-center justify-center p-2">
+                        {imgUrl ? (
+                          <div className="relative w-full h-full group rounded-lg overflow-hidden bg-white shadow-inner flex items-center justify-center">
+                            <img
+                              src={imgUrl}
+                              alt={`Slot ${slotIdx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Overlay remove / change buttons */}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                              <label className="cursor-pointer bg-white text-[#2D2D2D] px-2.5 py-1 rounded text-xs font-semibold hover:bg-gray-100 transition flex items-center gap-1">
+                                <Crop size={12} /> Replace / Crop
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={isUploading}
+                                  onChange={(e) => handleSlotFileSelect(slotIdx, e)}
+                                  className="hidden"
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => removeSlotImage(slotIdx)}
+                                className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-semibold hover:bg-red-700 transition flex items-center gap-1"
+                              >
+                                <Trash2 size={12} /> Remove
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label className="w-full h-full rounded-lg border border-dashed border-[#C9A84C]/40 hover:border-[#C9A84C] bg-white hover:bg-amber-50/40 transition cursor-pointer flex flex-col items-center justify-center p-3 text-center">
+                            {isUploading ? (
+                              <div className="flex flex-col items-center gap-1.5 text-xs text-[#C9A84C] font-semibold">
+                                <RefreshCw size={20} className="animate-spin" />
+                                <span>Optimizing...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="rounded-full bg-amber-50 p-2.5 text-[#C9A84C] mb-2 shadow-sm">
+                                  <Upload size={18} />
+                                </div>
+                                <span className="text-xs font-bold text-[#2D2D2D]">
+                                  {isCompulsory ? 'Upload Main Photo *' : 'Add Photo'}
+                                </span>
+                                <span className="text-[10px] text-[#8C827A] mt-1 leading-tight">
+                                  {slotInfo.subtitle}
+                                </span>
+                                <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-[#C9A84C] underline">
+                                  <Crop size={10} /> Crop or Fit
+                                </span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={isUploading}
+                              onChange={(e) => handleSlotFileSelect(slotIdx, e)}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Extra Images Beyond 4 Slots */}
+              {images.length > 4 && (
+                <div className="border-t border-[#E8E3DC] pt-3">
+                  <p className="text-xs font-bold uppercase text-[#6B6B6B] mb-2">Additional Photos (Slots 5+)</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {images.slice(4).map((url, extraIdx) => {
+                      const actualIdx = extraIdx + 4
+                      return (
+                        <div
+                          key={actualIdx}
+                          className="relative group rounded-lg border border-[#E8E3DC] overflow-hidden aspect-square bg-[#FAF8F5]"
+                        >
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeSlotImage(actualIdx)}
+                            className="absolute top-1 right-1 rounded-full bg-red-600 p-1 text-white shadow"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Add 5th+ photo button */}
+              <div className="flex justify-end pt-1">
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3 py-1.5 text-xs font-semibold text-[#2D2D2D] hover:bg-gray-100 transition cursor-pointer">
+                  <Plus size={13} />
+                  <span>Add Another Photo (Slot {images.length + 1})</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleSlotFileSelect(images.length, e)}
+                    className="hidden"
                   />
-                  {skuCheck.status === 'checking' && (
-                    <span className="absolute right-3 top-3 text-[11px] text-[#8C827A] flex items-center gap-1">
-                      <RefreshCw size={12} className="animate-spin" /> checking...
-                    </span>
-                  )}
-                  {skuCheck.status === 'available' && (
-                    <span className="absolute right-3 top-2.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 flex items-center gap-1">
-                      <CheckCircle2 size={11} /> Available
-                    </span>
-                  )}
-                  {skuCheck.status === 'taken' && (
-                    <span className="absolute right-3 top-2.5 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800 flex items-center gap-1">
-                      <AlertCircle size={11} /> Already In Use
-                    </span>
-                  )}
+                </label>
+              </div>
+            </div>
+
+            {/* Pricing & Margins */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={18} className="text-[#C9A84C]" />
+                  <h3 className="text-lg font-semibold text-[#2D2D2D]">Pricing & Margins</h3>
+                </div>
+                <span className="text-xs text-[#8C827A] bg-[#FAF8F5] px-2.5 py-1 rounded-md border border-[#E8E3DC]">
+                  Auto 2x Selling Price • Live Profit Calculation
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Cost Price */}
+                <div className="bg-[#FAF8F5] p-3.5 rounded-lg border border-[#E8E3DC]">
+                  <label className="block text-xs font-bold uppercase text-[#6B6B6B] mb-1">
+                    1. Cost Price (₹)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-sm text-[#8C827A]">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.costPrice || ''}
+                      onChange={(e) => handleCostPriceChange(Number(e.target.value))}
+                      placeholder="e.g. 400"
+                      className="w-full rounded-lg border border-[#E8E3DC] bg-white pl-7 pr-3 py-2 text-base font-medium focus:border-[#C9A84C] focus:outline-none"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#8C827A]">
+                    Auto-doubles selling price to 2x!
+                  </p>
                 </div>
 
-                {/* SKU Status Message & Suggestion */}
-                {skuCheck.status === 'taken' && (
-                  <div className="mt-1.5 p-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800">
-                    <p>{skuCheck.message}</p>
-                    {skuCheck.suggested && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({ ...prev, sku: skuCheck.suggested }))
-                          setIsSkuManuallyEdited(true)
-                        }}
-                        className="mt-1 font-semibold text-red-900 underline hover:text-red-700"
-                      >
-                        Click to use suggested: {skuCheck.suggested}
-                      </button>
+                {/* Selling Price */}
+                <div className="bg-emerald-50/50 p-3.5 rounded-lg border border-emerald-200">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase text-emerald-800">
+                      2. Selling Price (₹) *
+                    </label>
+                    {formData.costPrice > 0 && formData.sellingPrice === formData.costPrice * 2 && (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                        2x Cost
+                      </span>
                     )}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-sm text-emerald-700">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={formData.sellingPrice || ''}
+                      onChange={(e) => handleSellingPriceChange(Number(e.target.value))}
+                      placeholder="e.g. 800"
+                      className="w-full rounded-lg border border-emerald-300 bg-white pl-7 pr-3 py-2 text-base font-bold text-emerald-700 focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-emerald-700">
+                    Actual price customer pays (editable).
+                  </p>
+                </div>
+
+                {/* MRP */}
+                <div className="bg-amber-50/40 p-3.5 rounded-lg border border-amber-200">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase text-amber-900">
+                      3. MRP (₹) *
+                    </label>
+                    {discountPercent > 0 && (
+                      <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                        {discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-sm text-amber-800">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={formData.mrp || ''}
+                      onChange={(e) => handleMrpChange(Number(e.target.value))}
+                      placeholder="e.g. 1000"
+                      className="w-full rounded-lg border border-amber-300 bg-white pl-7 pr-3 py-2 text-base font-bold text-amber-900 focus:border-amber-500 focus:outline-none"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-amber-800">
+                    Strikethrough price shown to customer.
+                  </p>
+                </div>
+              </div>
+
+              {/* Discount Percentage Preset Buttons */}
+              <div className="rounded-lg border border-[#E8E3DC] p-3.5 bg-[#FAF8F5] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-[#6B6B6B]">
+                    <Percent size={13} className="text-[#C9A84C]" />
+                    <span>Select Discount % for MRP Calculation</span>
+                  </div>
+                  <span className="text-xs font-semibold text-[#2D2D2D]">
+                    Current Discount: <strong className="text-emerald-700">{discountPercent}% OFF</strong>
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {[0, 10, 15, 20, 25, 30, 40, 50].map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => handleDiscountPercentChange(pct)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+                        discountPercent === pct
+                          ? 'bg-[#C9A84C] text-white shadow-sm'
+                          : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:bg-amber-50 hover:border-[#C9A84C]'
+                      }`}
+                    >
+                      {pct === 0 ? 'No Discount' : `${pct}% OFF`}
+                    </button>
+                  ))}
+
+                  <div className="flex items-center gap-1 ml-auto">
+                    <span className="text-xs text-[#6B6B6B]">Custom %:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="90"
+                      value={discountPercent}
+                      onChange={(e) => handleDiscountPercentChange(Number(e.target.value))}
+                      className="w-16 rounded border border-[#E8E3DC] bg-white px-2 py-1 text-xs font-bold text-center focus:border-[#C9A84C] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {formData.sellingPrice > 0 && (
+                  <div className="mt-2 pt-2 border-t border-[#E8E3DC] flex flex-wrap items-center justify-between text-xs">
+                    <div className="text-[#6B6B6B]">
+                      Gross Margin:{' '}
+                      <span className="font-bold text-emerald-700">
+                        ₹{(formData.sellingPrice - formData.costPrice).toLocaleString('en-IN')} (
+                        {formData.costPrice > 0
+                          ? Math.round(((formData.sellingPrice - formData.costPrice) / formData.costPrice) * 100)
+                          : 100}
+                        % markup on cost)
+                      </span>
+                    </div>
+                    <div className="text-[#6B6B6B]">
+                      Customer Saves:{' '}
+                      <span className="font-bold text-amber-800">
+                        ₹{Math.max(0, formData.mrp - formData.sellingPrice).toLocaleString('en-IN')} ({discountPercent}% OFF)
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Short Description
-              </label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Handcrafted ethnic oxidised jewellery with intricate detailing..."
-                className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-            </div>
+            {/* Jewellery Attributes */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-lg font-semibold text-[#2D2D2D]">Jewellery Attributes</h3>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Detailed Product Information & Care
-              </label>
-              <textarea
-                rows={4}
-                value={formData.detailedContent}
-                onChange={(e) => setFormData({ ...formData, detailedContent: e.target.value })}
-                placeholder="Product Specifications, Styling Tips, Care instructions (Keep away from water and perfume)..."
-                className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Pricing & Cost Auto-Calculations */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-[#C9A84C]" />
-                <h3 className="text-lg font-semibold text-[#2D2D2D]">Pricing & Margins</h3>
-              </div>
-              <span className="text-xs text-[#8C827A] bg-[#FAF8F5] px-2.5 py-1 rounded-md border border-[#E8E3DC]">
-                Auto-Doubles Selling Price • Editable Anytime
-              </span>
-            </div>
-
-            {/* Inputs Grid: Cost Price -> Selling Price -> MRP */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Cost Price */}
-              <div className="bg-[#FAF8F5] p-3.5 rounded-lg border border-[#E8E3DC]">
-                <label className="block text-xs font-bold uppercase text-[#6B6B6B] mb-1">
-                  1. Cost Price (₹)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-sm text-[#8C827A]">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.costPrice || ''}
-                    onChange={(e) => handleCostPriceChange(Number(e.target.value))}
-                    placeholder="e.g. 400"
-                    className="w-full rounded-lg border border-[#E8E3DC] bg-white pl-7 pr-3 py-2 text-base font-medium focus:border-[#C9A84C] focus:outline-none"
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-[#8C827A]">
-                  Your purchase cost. Automatically doubles selling price to 2x!
-                </p>
-              </div>
-
-              {/* Selling Price (Auto 2x) */}
-              <div className="bg-emerald-50/50 p-3.5 rounded-lg border border-emerald-200">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold uppercase text-emerald-800">
-                    2. Selling Price (₹) *
-                  </label>
-                  {formData.costPrice > 0 && formData.sellingPrice === formData.costPrice * 2 && (
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-                      2x Cost
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-sm text-emerald-700">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.sellingPrice || ''}
-                    onChange={(e) => handleSellingPriceChange(Number(e.target.value))}
-                    placeholder="e.g. 800"
-                    className="w-full rounded-lg border border-emerald-300 bg-white pl-7 pr-3 py-2 text-base font-bold text-emerald-700 focus:border-emerald-600 focus:outline-none"
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-emerald-700">
-                  Actual price customer pays (editable anytime).
-                </p>
-              </div>
-
-              {/* MRP (Calculated via Discount %) */}
-              <div className="bg-amber-50/40 p-3.5 rounded-lg border border-amber-200">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold uppercase text-amber-900">
-                    3. MRP (₹) *
-                  </label>
-                  {discountPercent > 0 && (
-                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
-                      {discountPercent}% OFF
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-sm text-amber-800">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.mrp || ''}
-                    onChange={(e) => handleMrpChange(Number(e.target.value))}
-                    placeholder="e.g. 1000"
-                    className="w-full rounded-lg border border-amber-300 bg-white pl-7 pr-3 py-2 text-base font-bold text-amber-900 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-amber-800">
-                  Strikethrough price shown to customer (editable).
-                </p>
-              </div>
-            </div>
-
-            {/* Discount Percentage Selector */}
-            <div className="rounded-lg border border-[#E8E3DC] p-3.5 bg-[#FAF8F5] space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-[#6B6B6B]">
-                  <Percent size={13} className="text-[#C9A84C]" />
-                  <span>Select Discount % for MRP Calculation</span>
-                </div>
-                <span className="text-xs font-semibold text-[#2D2D2D]">
-                  Current Discount: <strong className="text-emerald-700">{discountPercent}% OFF</strong>
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {[0, 10, 15, 20, 25, 30, 40, 50].map((pct) => (
-                  <button
-                    key={pct}
-                    type="button"
-                    onClick={() => handleDiscountPercentChange(pct)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
-                      discountPercent === pct
-                        ? 'bg-[#C9A84C] text-white shadow-sm'
-                        : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:bg-amber-50 hover:border-[#C9A84C]'
-                    }`}
-                  >
-                    {pct === 0 ? 'No Discount (MRP = Selling)' : `${pct}% OFF`}
-                  </button>
-                ))}
-
-                {/* Custom Percentage Input */}
-                <div className="flex items-center gap-1 ml-auto">
-                  <span className="text-xs text-[#6B6B6B]">Custom %:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="90"
-                    value={discountPercent}
-                    onChange={(e) => handleDiscountPercentChange(Number(e.target.value))}
-                    className="w-16 rounded border border-[#E8E3DC] bg-white px-2 py-1 text-xs font-bold text-center focus:border-[#C9A84C] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Profit & Margin Summary Card */}
-              {formData.sellingPrice > 0 && (
-                <div className="mt-2 pt-2 border-t border-[#E8E3DC] flex flex-wrap items-center justify-between text-xs">
-                  <div className="text-[#6B6B6B]">
-                    Gross Margin:{' '}
-                    <span className="font-bold text-emerald-700">
-                      ₹{profitMarginAmount.toLocaleString('en-IN')} ({profitMarginPercent}% markup on cost)
-                    </span>
-                  </div>
-                  <div className="text-[#6B6B6B]">
-                    Customer Saves:{' '}
-                    <span className="font-bold text-amber-800">
-                      ₹{Math.max(0, formData.mrp - formData.sellingPrice).toLocaleString('en-IN')} ({discountPercent}% OFF)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Jewellery Attributes */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-semibold text-[#2D2D2D]">Jewellery Attributes</h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  Material
-                </label>
-                <input
-                  type="text"
-                  value={formData.material}
-                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                  placeholder="Oxidised Silver"
-                  className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  Colour
-                </label>
-                <input
-                  type="text"
-                  value={formData.colour}
-                  onChange={(e) => setFormData({ ...formData, colour: e.target.value })}
-                  placeholder="Antique Silver"
-                  className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  Style
-                </label>
-                <input
-                  type="text"
-                  value={formData.style}
-                  onChange={(e) => setFormData({ ...formData, style: e.target.value })}
-                  placeholder="Bohemian / Ethnic"
-                  className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  Weight
-                </label>
-                <input
-                  type="text"
-                  value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                  placeholder="25 grams"
-                  className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Product Images Gallery */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-semibold text-[#2D2D2D]">Product Imagery</h3>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Enter image URL or upload photo below"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                className="flex-1 rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={addImage}
-                className="rounded-lg bg-[#2D2D2D] px-4 py-2 text-sm font-semibold text-white hover:bg-black transition shrink-0"
-              >
-                Add URL
-              </button>
-              <label className="rounded-lg border border-[#C9A84C] bg-amber-50 px-4 py-2 text-sm font-semibold text-[#C9A84C] hover:bg-amber-100 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
-                <Upload size={14} />
-                <span>{uploading ? 'Optimizing & Uploading...' : 'Upload Photo'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  disabled={uploading}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            {images.length === 0 ? (
-              <div className="rounded-lg border-2 border-dashed border-[#E8E3DC] p-8 text-center text-xs text-[#8C827A]">
-                No photos added yet. Upload high-res product photos or enter an image URL above.
-              </div>
-            ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {images.map((url, index) => (
-                  <div
-                    key={index}
-                    className="relative group rounded-lg border border-[#E8E3DC] overflow-hidden bg-[#FAF8F5] aspect-square flex items-center justify-center"
-                  >
-                    <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
-                    {index === 0 && (
-                      <span className="absolute top-1 left-1 rounded bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
-                        Primary
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 rounded-full bg-red-600 p-1 text-white opacity-0 group-hover:opacity-100 transition shadow"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Material
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    placeholder="Oxidised Silver"
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Colour
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.colour}
+                    onChange={(e) => setFormData({ ...formData, colour: e.target.value })}
+                    placeholder="Antique Silver"
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Style
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.style}
+                    onChange={(e) => setFormData({ ...formData, style: e.target.value })}
+                    placeholder="Bohemian / Ethnic"
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Weight
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    placeholder="25 grams"
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Right Column - Organization & Status */}
-        <div className="space-y-6">
-          {/* Status & Visibility */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-semibold text-[#2D2D2D]">Publishing Status</h3>
+          {/* Right Column - Organization & Category */}
+          <div className="space-y-6">
+            {/* Save Options Action Box */}
+            <div className="rounded-xl border border-amber-300 bg-amber-50/40 p-5 shadow-sm space-y-3">
+              <h3 className="text-sm font-bold text-amber-900 uppercase tracking-wide">
+                Publishing Actions
+              </h3>
+              <p className="text-xs text-amber-800">
+                Choose to publish directly to live shoppers or save as a private draft.
+              </p>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm font-medium focus:border-[#C9A84C] focus:outline-none"
-              >
-                <option value="PUBLISHED">Published (Live in Store)</option>
-                <option value="DRAFT">Draft (Hidden)</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
+              <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  disabled={loading || skuCheck.status === 'taken'}
+                  onClick={() => handleFormSubmit('PUBLISHED')}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#C9A84C] px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-50"
+                >
+                  <FileCheck size={16} />
+                  <span>{loading ? 'Publishing...' : 'Publish & Make Live'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading || skuCheck.status === 'taken'}
+                  onClick={() => handleFormSubmit('DRAFT')}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-100/60 transition disabled:opacity-50 shadow-sm"
+                >
+                  <Save size={16} />
+                  <span>Save as Draft</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-4 py-2 text-xs font-semibold text-[#2D2D2D] hover:bg-gray-100 transition"
+                >
+                  <Eye size={14} className="text-[#C9A84C]" />
+                  <span>Preview Customer View</span>
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-[#E8E3DC]">
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-2">
+            {/* Category Assignment - Clean 6 categories */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-semibold text-[#2D2D2D]">Category Selection</h3>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                  Category *
+                </label>
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                >
+                  {categories.map((c) => (
+                    <optgroup key={c.id} label={c.name}>
+                      <option value={c.id}>{c.name} (Main)</option>
+                      {c.children?.map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          └ {sub.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-[#8C827A]">
+                  Choose: Oxidised Jewellery, Earrings, Nose Pins, Necklaces, Bangles, or Rings.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                  Collection (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.collectionName}
+                  onChange={(e) => setFormData({ ...formData, collectionName: e.target.value })}
+                  placeholder="e.g. Royal Rajputana, Festive Glow"
+                  className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Stock & Inventory */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-semibold text-[#2D2D2D]">Inventory & Stock</h3>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                  Total Available Units *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={formData.totalStock}
+                  onChange={(e) => setFormData({ ...formData, totalStock: Number(e.target.value) })}
+                  className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                  Low Stock Alert Threshold
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.lowStockThreshold}
+                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: Number(e.target.value) })}
+                  className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-3">
+              <label className="block text-xs font-semibold uppercase text-[#6B6B6B]">
                 Merchandising Badges
               </label>
 
@@ -1056,84 +1340,39 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
               </label>
             </div>
           </div>
-
-          {/* Category Assignment */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-semibold text-[#2D2D2D]">Category Selection</h3>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Category *
-              </label>
-              <select
-                required
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-              >
-                {categories.map((c) => (
-                  <optgroup key={c.id} label={c.name}>
-                    <option value={c.id}>{c.name} (Main)</option>
-                    {c.children?.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        └ {sub.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Collection
-              </label>
-              <input
-                type="text"
-                value={formData.collectionName}
-                onChange={(e) => setFormData({ ...formData, collectionName: e.target.value })}
-                placeholder="e.g. Royal Rajputana, Festive Glow"
-                className="w-full rounded-lg border border-[#E8E3DC] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Stock & Inventory */}
-          <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-semibold text-[#2D2D2D]">Inventory & Stock</h3>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Total Available Units *
-              </label>
-              <input
-                type="number"
-                min="0"
-                required
-                value={formData.totalStock}
-                onChange={(e) => setFormData({ ...formData, totalStock: Number(e.target.value) })}
-                className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                Low Stock Alert Threshold
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.lowStockThreshold}
-                onChange={(e) => setFormData({ ...formData, lowStockThreshold: Number(e.target.value) })}
-                className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-              />
-              <p className="mt-1 text-[11px] text-[#6B6B6B]">
-                Triggers dashboard alert when quantity drops to this number.
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
-    </form>
+      </form>
+
+      {/* Image Crop & Fit Modal */}
+      <ImageCropModal
+        isOpen={cropModal.isOpen}
+        imageSrc={cropModal.imageSrc}
+        fileName={cropModal.fileName}
+        onClose={() => setCropModal((prev) => ({ ...prev, isOpen: false }))}
+        onApply={handleCropApply}
+      />
+
+      {/* Live Customer Preview Modal */}
+      <ProductPreviewModal
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        product={{
+          name: formData.name,
+          sku: formData.sku,
+          mrp: formData.mrp,
+          sellingPrice: formData.sellingPrice,
+          discountPercent: discountPercent,
+          description: formData.description,
+          detailedContent: formData.detailedContent,
+          material: formData.material,
+          colour: formData.colour,
+          weight: formData.weight,
+          totalStock: formData.totalStock,
+          images: images.filter(Boolean),
+          collectionName: formData.collectionName,
+          status: formData.status,
+        }}
+      />
+    </>
   )
 }
