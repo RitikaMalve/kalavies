@@ -6,6 +6,16 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } fro
 
 export const dynamic = 'force-dynamic'
 
+function resolveLink(url?: string | null): string {
+  if (!url || !url.trim()) return '/products'
+  const clean = url.trim()
+  if (clean === '/collections/new-arrivals' || clean === '/collections/new') return '/products?filter=new'
+  if (clean.startsWith('/collections/')) return `/products?collection=${encodeURIComponent(clean.replace('/collections/', ''))}`
+  if (clean.startsWith('/categories/')) return `/products?category=${encodeURIComponent(clean.replace('/categories/', ''))}`
+  if (clean === '/collections' || clean === '/categories') return '/products'
+  return clean
+}
+
 export default async function HomePage() {
   let banners: any[] = []
   let categories: any[] = []
@@ -112,10 +122,10 @@ export default async function HomePage() {
 
           <div className="mt-8 flex flex-wrap gap-4 justify-center">
             <Link
-              href={heroBanner.linkUrl || '/products'}
+              href={resolveLink(heroBanner.linkUrl)}
               className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#B8963B] transition transform hover:-translate-y-0.5"
             >
-              {heroBanner.buttonText || 'Shop Collection'} <ArrowRight size={16} />
+              {heroBanner.buttonText || 'Shop Now'} <ArrowRight size={16} />
             </Link>
             <Link
               href="/products?category=oxidised-jewellery"
@@ -249,7 +259,7 @@ export default async function HomePage() {
               </p>
               <div className="pt-2">
                 <Link
-                  href={banners[1].linkUrl || '/products'}
+                  href={resolveLink(banners[1].linkUrl)}
                   className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#B8963B] transition"
                 >
                   {banners[1].buttonText || 'Discover Now'} <ArrowRight size={14} />

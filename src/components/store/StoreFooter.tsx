@@ -75,28 +75,33 @@ export default function StoreFooter() {
           </h4>
           <ul className="text-xs text-white/70 space-y-2.5">
             <li>
-              <Link href="/products?category=oxidised-jewellery" className="hover:text-[#C9A84C] transition">
-                Oxidised Silver Jewellery
+              <Link href="/products" className="hover:text-[#C9A84C] transition font-semibold text-white/90">
+                All Jewellery
               </Link>
             </li>
             <li>
-              <Link href="/products?category=artificial-jewellery" className="hover:text-[#C9A84C] transition">
-                Artificial & Fashion Jewellery
+              <Link href="/products?category=earrings" className="hover:text-[#C9A84C] transition">
+                Earrings & Jhumkas
               </Link>
             </li>
             <li>
-              <Link href="/products?category=traditional-jewellery" className="hover:text-[#C9A84C] transition">
-                Traditional Temple Jewellery
+              <Link href="/products?category=nose-pins" className="hover:text-[#C9A84C] transition">
+                Nose Pins & Nath
               </Link>
             </li>
             <li>
-              <Link href="/products?category=daily-wear-jewellery" className="hover:text-[#C9A84C] transition">
-                Daily Wear Minimalist
+              <Link href="/products?category=necklaces" className="hover:text-[#C9A84C] transition">
+                Necklaces & Chokers
               </Link>
             </li>
             <li>
-              <Link href="/products?category=festive-and-party-wear" className="hover:text-[#C9A84C] transition">
-                Festive & Bridal Sets
+              <Link href="/products?category=bangles" className="hover:text-[#C9A84C] transition">
+                Bangles & Kadas
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?category=rings" className="hover:text-[#C9A84C] transition">
+                Finger Rings
               </Link>
             </li>
           </ul>
