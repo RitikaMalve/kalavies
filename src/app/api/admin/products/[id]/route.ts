@@ -23,6 +23,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params
+  let cleanSku = ''
   try {
     const body = await req.json()
     const {
@@ -51,13 +52,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
       images,
     } = body
 
+    cleanSku = sku ? String(sku).trim().toUpperCase() : ''
+
     // Update product
     const updated = await prisma.product.update({
       where: { id },
       data: {
         name,
         slug,
-        sku,
+        ...(cleanSku ? { sku: cleanSku } : {}),
         categoryId,
         collectionName,
         description,
@@ -95,6 +98,20 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     return NextResponse.json({ success: true, product: updated })
   } catch (err: any) {
+    if (err.code === 'P2002') {
+      const target = err.meta?.target || []
+      const targetStr = Array.isArray(target) ? target.join(', ') : String(target)
+      if (targetStr.includes('sku')) {
+        return NextResponse.json(
+          { error: `A product with SKU "${cleanSku}" already exists. Please choose a different SKU.` },
+          { status: 400 }
+        )
+      }
+      return NextResponse.json(
+        { error: `Duplicate item found (${targetStr}). Please use unique values.` },
+        { status: 400 }
+      )
+    }
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

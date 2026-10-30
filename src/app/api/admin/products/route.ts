@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  let cleanSku = ''
+  let cleanSlug = ''
+
   try {
     const body = await req.json()
     const {
@@ -70,15 +73,18 @@ export async function POST(req: NextRequest) {
       variants,
     } = body
 
-    if (!name || !slug || !sku || !categoryId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    cleanSku = String(sku || '').trim().toUpperCase()
+    cleanSlug = String(slug || '').trim().toLowerCase()
+
+    if (!name || !cleanSlug || !cleanSku || !categoryId) {
+      return NextResponse.json({ error: 'Missing required fields (Name, Slug, SKU, Category)' }, { status: 400 })
     }
 
     const product = await prisma.product.create({
       data: {
-        name,
-        slug,
-        sku,
+        name: String(name).trim(),
+        slug: cleanSlug,
+        sku: cleanSku,
         categoryId,
         collectionName,
         brandName: brandName || 'KALAVIES',
@@ -140,6 +146,26 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, product })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    if (err.code === 'P2002') {
+      const target = err.meta?.target || []
+      const targetStr = Array.isArray(target) ? target.join(', ') : String(target)
+      if (targetStr.includes('sku')) {
+        return NextResponse.json(
+          { error: `A product with SKU "${cleanSku}" already exists. Please choose a different SKU.` },
+          { status: 400 }
+        )
+      }
+      if (targetStr.includes('slug')) {
+        return NextResponse.json(
+          { error: `A product with slug "${cleanSlug}" already exists. Please adjust the title or URL slug.` },
+          { status: 400 }
+        )
+      }
+      return NextResponse.json(
+        { error: `Duplicate item found (${targetStr}). Please use unique values.` },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json({ error: err.message || 'Failed to create product' }, { status: 500 })
   }
 }
