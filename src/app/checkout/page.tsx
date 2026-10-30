@@ -24,6 +24,45 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import StoreLayoutClient from '@/components/store/StoreLayoutClient'
 
+const INDIAN_STATES = [
+  'Andaman and Nicobar Islands',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chandigarh',
+  'Chhattisgarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Ladakh',
+  'Lakshadweep',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Puducherry',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+]
+
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, subtotal, clearCart } = useCart()
@@ -42,7 +81,7 @@ export default function CheckoutPage() {
   const [addressLine1, setAddressLine1] = useState('')
   const [addressLine2, setAddressLine2] = useState('')
   const [city, setCity] = useState('')
-  const [state, setState] = useState('Karnataka')
+  const [state, setState] = useState('')
   const [pincode, setPincode] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD')
 
@@ -405,7 +444,7 @@ export default function CheckoutPage() {
                 <input
                   type="email"
                   required
-                  placeholder="priya@example.com"
+                  placeholder="e.g. yourname@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -419,7 +458,7 @@ export default function CheckoutPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Flat 302, Royal Residency"
+                  placeholder="e.g. Flat 302, Royal Residency / House No. 15"
                   value={addressLine1}
                   onChange={(e) => setAddressLine1(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -432,7 +471,7 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Indiranagar, 100ft Road"
+                  placeholder="e.g. MG Road, Sector 4, Near Post Office"
                   value={addressLine2}
                   onChange={(e) => setAddressLine2(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -447,7 +486,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Bangalore"
+                    placeholder="e.g. Mumbai, Delhi, Nagpur"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -458,13 +497,19 @@ export default function CheckoutPage() {
                   <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
                     State *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
-                  />
+                    className="w-full rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none cursor-pointer"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -475,7 +520,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="560001"
+                    placeholder="e.g. 400001"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none font-mono"
