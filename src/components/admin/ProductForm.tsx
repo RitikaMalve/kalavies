@@ -421,7 +421,7 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
               </button>
               <label className="rounded-lg border border-[#C9A84C] bg-amber-50 px-4 py-2 text-sm font-semibold text-[#C9A84C] hover:bg-amber-100 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
                 <Upload size={14} />
-                <span>{uploading ? 'Uploading to Firebase...' : 'Upload Photo'}</span>
+                <span>{uploading ? 'Optimizing & Uploading...' : 'Upload Photo'}</span>
                 <input
                   type="file"
                   accept="image/*"
