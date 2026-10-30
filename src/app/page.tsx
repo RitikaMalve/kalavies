@@ -171,8 +171,11 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories.map((cat) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {(categories.length === 1 && categories[0].children?.length > 0
+            ? [categories[0], ...categories[0].children]
+            : categories
+          ).map((cat: any) => (
             <Link
               key={cat.id}
               href={`/products?category=${cat.slug}`}
@@ -192,11 +195,15 @@ export default async function HomePage() {
                 )}
               </div>
               <div>
-                <h3 className="font-bold text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition">
+                <h3 className="font-bold text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition line-clamp-1">
                   {cat.name}
                 </h3>
                 <p className="text-[11px] text-[#6B6B6B] mt-0.5">
-                  {cat.children?.length || 0} subcategories
+                  {cat.children?.length > 0
+                    ? `${cat.children.length} styles`
+                    : cat._count?.products !== undefined
+                    ? `${cat._count.products} items`
+                    : 'Handcrafted'}
                 </p>
               </div>
               <span className="mt-3 inline-flex items-center text-[10px] font-semibold text-[#C9A84C]">

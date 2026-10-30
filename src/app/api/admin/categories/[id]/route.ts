@@ -23,6 +23,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         slug: body.slug,
         parentId: body.parentId || null,
         description: body.description,
+        image: body.image !== undefined ? body.image : undefined,
         isActive: body.isActive,
         sortOrder: body.sortOrder,
       },
