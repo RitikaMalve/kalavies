@@ -215,7 +215,7 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
         if (isEditing && initialData?.id) {
           queryParams.set('excludeId', initialData.id)
         }
-        const res = await fetch(`/api/admin/products/check-sku?${queryParams.toString()}`)
+        const res = await fetch(`/api/admin/check-sku?${queryParams.toString()}`)
         const data = await res.json()
 
         if (data.available) {
