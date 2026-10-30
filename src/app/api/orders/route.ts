@@ -1,43 +1,125 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/auth'
+import { getSession, hashPassword, verifyPassword, createSession } from '@/lib/auth'
 import { generateOrderNumber, generateInvoiceNumber } from '@/lib/utils'
 
 export async function POST(req: NextRequest) {
   try {
     const sessionUser = await getSession()
-    const { customerDetails, paymentMethod, items, subtotal, shippingCharge, totalAmount } =
-      await req.json()
+    const {
+      customerDetails,
+      paymentMethod,
+      items,
+      subtotal,
+      shippingCharge,
+      totalAmount,
+      password,
+    } = await req.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items in order' }, { status: 400 })
     }
 
     if (!customerDetails?.fullName || !customerDetails?.phone || !customerDetails?.addressLine1) {
-      return NextResponse.json({ error: 'Please provide complete delivery details' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Please provide complete delivery details (Name, Phone, Address)' },
+        { status: 400 }
+      )
     }
 
-    // Verify user or create guest customer record
+    const cleanPhone = customerDetails.phone.replace(/\D/g, '').slice(-10)
+    if (cleanPhone.length < 10) {
+      return NextResponse.json(
+        { error: 'Please provide a valid 10-digit mobile number' },
+        { status: 400 }
+      )
+    }
+
+    const cleanEmail = customerDetails.email ? customerDetails.email.toLowerCase().trim() : ''
+
     let userId = sessionUser?.id
+    let newSessionToken: string | null = null
+
+    // If unauthenticated, verify account or create a new account
     if (!userId) {
-      // Find or create customer by email
-      const existingUser = await prisma.user.findUnique({
-        where: { email: customerDetails.email },
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { phone: cleanPhone },
+            { phone: `+91${cleanPhone}` },
+            { phone: `91${cleanPhone}` },
+            { phone: `0${cleanPhone}` },
+            { phone: { endsWith: cleanPhone } },
+            ...(cleanEmail ? [{ email: cleanEmail }] : []),
+          ],
+        },
       })
+
       if (existingUser) {
+        // Account exists - require password authentication
+        if (!password) {
+          return NextResponse.json(
+            {
+              error: `An account already exists for ${existingUser.firstName || 'this mobile number'}. Please enter your password to proceed.`,
+              requiresPassword: true,
+              accountExists: true,
+              userFirstName: existingUser.firstName,
+            },
+            { status: 401 }
+          )
+        }
+
+        const isPasswordValid = await verifyPassword(password.trim(), existingUser.passwordHash)
+        if (!isPasswordValid) {
+          return NextResponse.json(
+            {
+              error: 'Incorrect password for this account. Please try again.',
+              requiresPassword: true,
+              accountExists: true,
+              userFirstName: existingUser.firstName,
+            },
+            { status: 401 }
+          )
+        }
+
         userId = existingUser.id
+        newSessionToken = await createSession(existingUser.id)
       } else {
-        const guestUser = await prisma.user.create({
+        // Account does NOT exist - register new customer with phone and password
+        if (!password || password.trim().length < 6) {
+          return NextResponse.json(
+            {
+              error: 'Please create a password (at least 6 characters) to register your account and place your order.',
+              requiresPassword: true,
+              accountExists: false,
+            },
+            { status: 400 }
+          )
+        }
+
+        const passwordHash = await hashPassword(password.trim())
+        const nameParts = customerDetails.fullName.trim().split(/\s+/)
+        const firstName = nameParts[0] || 'Valued'
+        const lastName = nameParts.slice(1).join(' ') || 'Customer'
+        const accountEmail = cleanEmail || `${cleanPhone}@kalavies.customer`
+
+        // Check if fallback email happens to be taken
+        const fallbackCheck = await prisma.user.findUnique({ where: { email: accountEmail } })
+        const finalEmail = fallbackCheck ? `${cleanPhone}_${Date.now()}@kalavies.customer` : accountEmail
+
+        const newUser = await prisma.user.create({
           data: {
-            email: customerDetails.email,
-            passwordHash: 'guest-no-password',
-            firstName: customerDetails.fullName.split(' ')[0] || 'Valued',
-            lastName: customerDetails.fullName.split(' ').slice(1).join(' ') || 'Customer',
-            phone: customerDetails.phone,
+            email: finalEmail,
+            phone: cleanPhone,
+            passwordHash,
+            firstName,
+            lastName,
             role: 'CUSTOMER',
           },
         })
-        userId = guestUser.id
+
+        userId = newUser.id
+        newSessionToken = await createSession(newUser.id)
       }
     }
 
@@ -124,7 +206,7 @@ export async function POST(req: NextRequest) {
           businessAddress: '108, Jewellery Palace, MG Road, Bangalore, Karnataka, 560001',
           businessGstin: '29ABCDE1234F1Z5',
           customerName: customerDetails.fullName,
-          customerEmail: customerDetails.email,
+          customerEmail: customerDetails.email || `${cleanPhone}@customer`,
           customerPhone: customerDetails.phone,
           customerAddress: `${customerDetails.addressLine1}, ${customerDetails.city}, ${customerDetails.state} - ${customerDetails.pincode}`,
           subtotal: Number(subtotal),
@@ -137,7 +219,20 @@ export async function POST(req: NextRequest) {
       return newOrder
     })
 
-    return NextResponse.json({ success: true, order: result })
+    const response = NextResponse.json({ success: true, order: result })
+
+    // Set authentication session cookie if user just logged in or registered during checkout
+    if (newSessionToken) {
+      response.cookies.set('session-token', newSessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+      })
+    }
+
+    return response
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 })
   }
