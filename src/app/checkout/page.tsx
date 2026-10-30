@@ -497,19 +497,20 @@ export default function CheckoutPage() {
                   <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
                     State *
                   </label>
-                  <select
+                  <input
+                    type="text"
                     required
+                    list="indian-states-list"
+                    placeholder="e.g. Maharashtra, Karnataka"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none cursor-pointer"
-                  >
-                    <option value="">Select State</option>
+                    className="w-full rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                  <datalist id="indian-states-list">
                     {INDIAN_STATES.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
+                      <option key={st} value={st} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 <div>
