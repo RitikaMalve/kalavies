@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { checkSkuAvailability } from '@/lib/skuHelper'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -8,6 +9,9 @@ interface Params {
 
 export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params
+  if (id === 'check-sku') {
+    return checkSkuAvailability(req)
+  }
   const product = await prisma.product.findUnique({
     where: { id },
     include: { images: true, variants: true, category: true },
