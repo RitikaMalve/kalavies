@@ -690,8 +690,8 @@ model Review {
 
 model ShippingSetting {
   id                 String  @id @default(uuid())
-  freeShippingAbove  Float   @default(499)
-  flatShippingRate   Float   @default(49)
+  freeShippingAbove  Float   @default(699)
+  flatShippingRate   Float   @default(70)
   estimatedDaysMin   Int     @default(3)
   estimatedDaysMax   Int     @default(7)
   codEnabled         Boolean @default(true)

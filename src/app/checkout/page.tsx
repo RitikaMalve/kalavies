@@ -124,9 +124,21 @@ export default function CheckoutPage() {
     }
   }
 
-  const freeShippingThreshold = 499
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(699)
+  const [flatShippingRate, setFlatShippingRate] = useState(70)
+
+  useEffect(() => {
+    fetch('/api/admin/settings/shipping')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.freeShippingAbove) setFreeShippingThreshold(data.freeShippingAbove)
+        if (data.flatShippingRate) setFlatShippingRate(data.flatShippingRate)
+      })
+      .catch(() => {})
+  }, [])
+
   const isFreeShipping = subtotal >= freeShippingThreshold
-  const shippingCharge = isFreeShipping ? 0 : 49
+  const shippingCharge = isFreeShipping ? 0 : flatShippingRate
   const finalTotal = subtotal + shippingCharge
 
   const handleSubmitOrder = async (e: React.FormEvent) => {

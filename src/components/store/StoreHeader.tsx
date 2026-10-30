@@ -53,7 +53,7 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Free Shipping on orders above ₹499</span>
+            <span>Free Shipping on orders above ₹699</span>
             <span className="text-amber-400 font-medium">✨ Premium Handcrafted Jewellery</span>
           </div>
         </div>

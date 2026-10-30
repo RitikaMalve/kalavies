@@ -126,6 +126,13 @@ export async function POST(req: NextRequest) {
     const orderNumber = generateOrderNumber()
     const invoiceNumber = generateInvoiceNumber()
 
+    // Retrieve verified shipping rule from database
+    const shippingSetting = await prisma.shippingSetting.findFirst()
+    const freeShippingAbove = shippingSetting?.freeShippingAbove ?? 699
+    const flatShippingRate = shippingSetting?.flatShippingRate ?? 70
+    const verifiedShippingCharge = Number(subtotal) >= freeShippingAbove ? 0 : flatShippingRate
+    const verifiedTotalAmount = Number(subtotal) + verifiedShippingCharge
+
     // Database transaction to ensure atomicity
     const result = await prisma.$transaction(async (tx) => {
       // 1. Verify and reduce stock for all items
@@ -170,8 +177,8 @@ export async function POST(req: NextRequest) {
           userId,
           status: 'CONFIRMED',
           subtotal: Number(subtotal),
-          shippingCharge: Number(shippingCharge),
-          totalAmount: Number(totalAmount),
+          shippingCharge: verifiedShippingCharge,
+          totalAmount: verifiedTotalAmount,
           paymentMethod: paymentMethod || 'COD',
           paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PAID',
           shippingName: customerDetails.fullName,
@@ -210,9 +217,9 @@ export async function POST(req: NextRequest) {
           customerPhone: customerDetails.phone,
           customerAddress: `${customerDetails.addressLine1}, ${customerDetails.city}, ${customerDetails.state} - ${customerDetails.pincode}`,
           subtotal: Number(subtotal),
-          shipping: Number(shippingCharge),
+          shipping: verifiedShippingCharge,
           tax: 0,
-          total: Number(totalAmount),
+          total: verifiedTotalAmount,
         },
       })
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
@@ -7,10 +8,19 @@ import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, subtotal, removeItem, updateQuantity } = useCart()
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(699)
+
+  useEffect(() => {
+    fetch('/api/admin/settings/shipping')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.freeShippingAbove) setFreeShippingThreshold(data.freeShippingAbove)
+      })
+      .catch(() => {})
+  }, [])
 
   if (!isOpen) return null
 
-  const freeShippingThreshold = 499
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal)
   const shippingPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100))
 

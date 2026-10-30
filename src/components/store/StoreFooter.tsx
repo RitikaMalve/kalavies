@@ -15,7 +15,7 @@ export default function StoreFooter() {
           <div className="flex flex-col items-center gap-2">
             <Truck className="w-6 h-6 text-[#C9A84C]" />
             <h4 className="text-sm font-semibold tracking-wide">Free Express Shipping</h4>
-            <p className="text-xs text-white/60">On all prepaid & COD orders above ₹499</p>
+            <p className="text-xs text-white/60">On all prepaid & COD orders above ₹699</p>
           </div>
           <div className="flex flex-col items-center gap-2">
             <RefreshCw className="w-6 h-6 text-[#C9A84C]" />
