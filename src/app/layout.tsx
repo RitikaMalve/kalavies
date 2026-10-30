@@ -11,8 +11,17 @@ export const metadata: Metadata = {
     "Discover handcrafted oxidised silver jewellery, antique temple sets, bridal chokers, jhumkas, and contemporary fashion accessories from KALAVIES.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/logo-circle.png",
-    apple: "/logo-circle.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/logo-circle.png", sizes: "500x500", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/logo-circle.png", sizes: "500x500", type: "image/png" },
+    ],
   },
   keywords: [
     "jewellery",
