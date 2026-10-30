@@ -39,7 +39,7 @@ export default function CartPage() {
   const [couponLoading, setCouponLoading] = useState(false)
 
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(699)
-  const [flatShippingRate, setFlatShippingRate] = useState(70)
+  const [flatShippingRate, setFlatShippingRate] = useState(69)
 
   useEffect(() => {
     fetch('/api/admin/settings/shipping')

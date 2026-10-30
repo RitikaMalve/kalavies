@@ -25,7 +25,7 @@ export default function StoreFooter() {
           <div className="flex flex-col items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
             <h4 className="text-sm font-semibold tracking-wide">Secure Checkout</h4>
-            <p className="text-xs text-white/60">UPI, Cards, Netbanking & Cash on Delivery</p>
+            <p className="text-xs text-white/60">Cash on Delivery (COD) at your doorstep</p>
           </div>
         </div>
       </div>

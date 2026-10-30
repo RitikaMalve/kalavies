@@ -83,7 +83,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const [pincode, setPincode] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD')
+  const [paymentMethod, setPaymentMethod] = useState<'COD'>('COD')
 
   // Account check state for non-logged-in customers
   const [checkingPhone, setCheckingPhone] = useState(false)
@@ -164,7 +164,7 @@ export default function CheckoutPage() {
   }
 
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(699)
-  const [flatShippingRate, setFlatShippingRate] = useState(70)
+  const [flatShippingRate, setFlatShippingRate] = useState(69)
 
   useEffect(() => {
     fetch('/api/admin/settings/shipping')
@@ -545,59 +545,28 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="space-y-3">
-                <label
-                  className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition ${
-                    paymentMethod === 'COD'
-                      ? 'border-[#C9A84C] bg-amber-50/40 ring-1 ring-[#C9A84C]'
-                      : 'border-[#E8E3DC] hover:bg-gray-50'
-                  }`}
-                >
+                <div className="flex items-start gap-4 p-4 rounded-xl border border-[#C9A84C] bg-amber-50/40 ring-1 ring-[#C9A84C]">
                   <input
                     type="radio"
                     name="payment"
                     value="COD"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
+                    checked={true}
+                    readOnly
                     className="mt-1 text-[#C9A84C]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <Banknote className="text-[#C9A84C]" size={20} />
                       <span className="font-bold text-[#2D2D2D]">Cash on Delivery (COD)</span>
+                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        Available
+                      </span>
                     </div>
                     <p className="text-xs text-[#6B6B6B] mt-1">
                       Pay in cash or through UPI upon receiving the parcel at your doorstep.
                     </p>
                   </div>
-                </label>
-
-                <label
-                  className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition ${
-                    paymentMethod === 'ONLINE'
-                      ? 'border-[#C9A84C] bg-amber-50/40 ring-1 ring-[#C9A84C]'
-                      : 'border-[#E8E3DC] hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="ONLINE"
-                    checked={paymentMethod === 'ONLINE'}
-                    onChange={() => setPaymentMethod('ONLINE')}
-                    className="mt-1 text-[#C9A84C]"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="text-[#C9A84C]" size={20} />
-                      <span className="font-bold text-[#2D2D2D]">
-                        Online Payment (UPI, GPay, Cards, Netbanking)
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#6B6B6B] mt-1">
-                      Fast and 100% secure payment through Instant UPI gateway.
-                    </p>
-                  </div>
-                </label>
+                </div>
               </div>
             </div>
           </div>

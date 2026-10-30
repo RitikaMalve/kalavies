@@ -7,7 +7,7 @@ export async function GET() {
     const setting = await prisma.shippingSetting.findFirst()
     return NextResponse.json({
       freeShippingAbove: setting?.freeShippingAbove ?? 699,
-      flatShippingRate: setting?.flatShippingRate ?? 70,
+      flatShippingRate: setting?.flatShippingRate ?? 69,
       codEnabled: setting?.codEnabled ?? true,
       codExtraCharge: setting?.codExtraCharge ?? 0,
       estimatedDaysMin: setting?.estimatedDaysMin ?? 3,
@@ -16,7 +16,7 @@ export async function GET() {
   } catch {
     return NextResponse.json({
       freeShippingAbove: 699,
-      flatShippingRate: 70,
+      flatShippingRate: 69,
       codEnabled: true,
       codExtraCharge: 0,
       estimatedDaysMin: 3,

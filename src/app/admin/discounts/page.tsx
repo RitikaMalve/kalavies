@@ -16,7 +16,7 @@ export default async function AdminDiscountsPage() {
         shippingSetting || {
           id: '',
           freeShippingAbove: 699,
-          flatShippingRate: 70,
+          flatShippingRate: 69,
           codEnabled: true,
           codExtraCharge: 0,
         }

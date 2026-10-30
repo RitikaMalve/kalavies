@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     // Retrieve verified shipping rule from database
     const shippingSetting = await prisma.shippingSetting.findFirst()
     const freeShippingAbove = shippingSetting?.freeShippingAbove ?? 699
-    const flatShippingRate = shippingSetting?.flatShippingRate ?? 70
+    const flatShippingRate = shippingSetting?.flatShippingRate ?? 69
     const verifiedShippingCharge = Number(subtotal) >= freeShippingAbove ? 0 : flatShippingRate
     const verifiedTotalAmount = Number(subtotal) + verifiedShippingCharge
 

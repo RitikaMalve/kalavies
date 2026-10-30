@@ -43,7 +43,7 @@ export default function DiscountsManager({
 
   // Shipping form state
   const [freeShippingAbove, setFreeShippingAbove] = useState(shippingSetting.freeShippingAbove || 699)
-  const [flatShippingRate, setFlatShippingRate] = useState(shippingSetting.flatShippingRate || 70)
+  const [flatShippingRate, setFlatShippingRate] = useState(shippingSetting.flatShippingRate || 69)
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingMsg, setShippingMsg] = useState('')
 
