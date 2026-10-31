@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductCard from '@/components/store/ProductCard'
@@ -18,6 +19,49 @@ interface Props {
     filter?: string
     page?: string
   }>
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams
+  const categorySlug = params.category || ''
+  const search = params.search || ''
+
+  if (categorySlug) {
+    try {
+      const category = await prisma.category.findUnique({
+        where: { slug: categorySlug },
+      })
+      if (category) {
+        return {
+          title: `Buy Handcrafted ${category.name} Online | KALAVIES India`,
+          description: `Shop authentic handcrafted ${category.name} online at best prices. Premium oxidised silver designs, Cash on Delivery & free shipping above ₹699.`,
+          alternates: {
+            canonical: `/products?category=${categorySlug}`,
+          },
+          openGraph: {
+            title: `${category.name} Collection | KALAVIES Jewellery`,
+            description: `Explore our handcrafted collection of ${category.name}.`,
+          },
+        }
+      }
+    } catch {}
+  }
+
+  if (search) {
+    return {
+      title: `Search: "${search}" | KALAVIES Jewellery`,
+      description: `Browse handcrafted jewellery search results for "${search}" at KALAVIES.`,
+    }
+  }
+
+  return {
+    title: 'All Handcrafted Jewellery Collections | KALAVIES India',
+    description:
+      'Explore handcrafted oxidised earrings, jhumkas, necklaces, chokers, bangles, and bridal jewellery sets. Free shipping above ₹699 & Cash on Delivery.',
+    alternates: {
+      canonical: '/products',
+    },
+  }
 }
 
 export default async function ProductsCatalogPage({ searchParams }: Props) {
