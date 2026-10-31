@@ -14,7 +14,7 @@ export default function OfflinePage() {
         You are currently offline
       </h1>
       <p className="text-xs sm:text-sm text-[#6B6B6B] max-w-sm mt-2 mb-8">
-        Please check your internet connection to continue browsing our handcrafted jewellery collections and live stock.
+        Please check your internet connection to continue browsing our jewellery collections and live stock.
       </p>
       <Link
         href="/"

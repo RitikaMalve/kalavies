@@ -172,7 +172,7 @@ export default function ProductPreviewModal({
               <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-[#6B6B6B]">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={16} className="text-[#C9A84C]" />
-                  <span>100% Genuine Handcrafted</span>
+                  <span>100% Genuine Quality</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Truck size={16} className="text-[#C9A84C]" />

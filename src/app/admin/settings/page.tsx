@@ -24,7 +24,7 @@ export default async function AdminSettingsPage() {
           state: 'Karnataka',
           pincode: '560001',
           gstin: '29ABCDE1234F1Z5',
-          aboutUs: 'KALAVIES represents the pinnacle of handcrafted Indian oxidised and fine artificial jewellery.',
+          aboutUs: 'KALAVIES represents the pinnacle of curated Indian oxidised, anti-tarnish and fine traditional jewellery.',
           returnPolicy: 'Easy 7-day hassle-free return and exchange for unworn jewellery items in original packaging.',
           cancellationPolicy: 'Orders can be cancelled free of charge within 24 hours of placement before dispatch.',
         }

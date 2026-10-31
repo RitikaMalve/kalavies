@@ -9,6 +9,7 @@ interface ImageCropModalProps {
   isOpen: boolean
   onClose: () => void
   onApply: (croppedBlob: Blob, previewUrl: string) => void
+  aspectRatio?: 'square' | 'banner'
 }
 
 export default function ImageCropModal({
@@ -17,8 +18,15 @@ export default function ImageCropModal({
   isOpen,
   onClose,
   onApply,
+  aspectRatio = 'square',
 }: ImageCropModalProps) {
-  const [mode, setMode] = useState<'crop' | 'fit'>('crop') // 'crop' = fill square, 'fit' = contain with white border
+  const isBanner = aspectRatio === 'banner'
+  const previewW = isBanner ? 560 : 500
+  const previewH = isBanner ? 210 : 500
+  const targetW = isBanner ? 1920 : 1000
+  const targetH = isBanner ? 720 : 1000
+
+  const [mode, setMode] = useState<'crop' | 'fit'>('crop')
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0) // 0, 90, 180, 270
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -47,7 +55,7 @@ export default function ImageCropModal({
   // Re-render when controls change
   useEffect(() => {
     renderCanvas()
-  }, [mode, zoom, rotation, offset])
+  }, [mode, zoom, rotation, offset, isBanner])
 
   const renderCanvas = () => {
     const canvas = canvasRef.current
@@ -57,35 +65,30 @@ export default function ImageCropModal({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const size = 500 // preview resolution
-    canvas.width = size
-    canvas.height = size
+    canvas.width = previewW
+    canvas.height = previewH
 
-    // Clear background (clean pure white)
+    // Clear background
     ctx.fillStyle = '#FFFFFF'
-    ctx.fillRect(0, 0, size, size)
+    ctx.fillRect(0, 0, previewW, previewH)
 
     ctx.save()
-    // Move to center of canvas
-    ctx.translate(size / 2 + offset.x, size / 2 + offset.y)
+    ctx.translate(previewW / 2 + offset.x, previewH / 2 + offset.y)
     ctx.rotate((rotation * Math.PI) / 180)
 
-    // Calculate dimensions
     const isRotated90or270 = rotation % 180 !== 0
     const imgW = isRotated90or270 ? img.height : img.width
     const imgH = isRotated90or270 ? img.width : img.height
 
-    let renderW = size
-    let renderH = size
+    let renderW = previewW
+    let renderH = previewH
 
     if (mode === 'crop') {
-      // Cover (fill entire square)
-      const scale = Math.max(size / imgW, size / imgH) * zoom
+      const scale = Math.max(previewW / imgW, previewH / imgH) * zoom
       renderW = img.width * scale
       renderH = img.height * scale
     } else {
-      // Fit / Contain (fit entire photo inside square without cutting anything)
-      const scale = Math.min(size / imgW, size / imgH) * zoom
+      const scale = Math.min(previewW / imgW, previewH / imgH) * zoom
       renderW = img.width * scale
       renderH = img.height * scale
     }
@@ -143,35 +146,34 @@ export default function ImageCropModal({
 
     try {
       const outputCanvas = document.createElement('canvas')
-      const targetSize = 1000 // 1000x1000 e-commerce standard
-      outputCanvas.width = targetSize
-      outputCanvas.height = targetSize
+      outputCanvas.width = targetW
+      outputCanvas.height = targetH
       const ctx = outputCanvas.getContext('2d')
       if (!ctx) throw new Error('Canvas context failed')
 
       // White background
       ctx.fillStyle = '#FFFFFF'
-      ctx.fillRect(0, 0, targetSize, targetSize)
+      ctx.fillRect(0, 0, targetW, targetH)
 
       ctx.save()
-      // Scale offsets from 500px preview to 1000px target
-      const scaleFactor = targetSize / 500
-      ctx.translate(targetSize / 2 + offset.x * scaleFactor, targetSize / 2 + offset.y * scaleFactor)
+      const scaleFactorX = targetW / previewW
+      const scaleFactorY = targetH / previewH
+      ctx.translate(targetW / 2 + offset.x * scaleFactorX, targetH / 2 + offset.y * scaleFactorY)
       ctx.rotate((rotation * Math.PI) / 180)
 
       const isRotated90or270 = rotation % 180 !== 0
       const imgW = isRotated90or270 ? img.height : img.width
       const imgH = isRotated90or270 ? img.width : img.height
 
-      let renderW = targetSize
-      let renderH = targetSize
+      let renderW = targetW
+      let renderH = targetH
 
       if (mode === 'crop') {
-        const scale = Math.max(targetSize / imgW, targetSize / imgH) * zoom
+        const scale = Math.max(targetW / imgW, targetH / imgH) * zoom
         renderW = img.width * scale
         renderH = img.height * scale
       } else {
-        const scale = Math.min(targetSize / imgW, targetSize / imgH) * zoom
+        const scale = Math.min(targetW / imgW, targetH / imgH) * zoom
         renderW = img.width * scale
         renderH = img.height * scale
       }
@@ -179,7 +181,7 @@ export default function ImageCropModal({
       ctx.drawImage(img, -renderW / 2, -renderH / 2, renderW, renderH)
       ctx.restore()
 
-      // Convert to WebP blob
+      // Convert to WebP blob (optimized for performance)
       outputCanvas.toBlob(
         (blob) => {
           if (blob) {
@@ -189,7 +191,7 @@ export default function ImageCropModal({
           setProcessing(false)
         },
         'image/webp',
-        0.88
+        isBanner ? 0.83 : 0.88
       )
     } catch (err) {
       console.error('Cropping error:', err)
@@ -201,12 +203,16 @@ export default function ImageCropModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-[#E8E3DC]">
+      <div className={`relative w-full ${isBanner ? 'max-w-xl' : 'max-w-lg'} rounded-2xl bg-white shadow-2xl overflow-hidden border border-[#E8E3DC]`}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#E8E3DC] px-5 py-3.5 bg-[#FAF8F5]">
           <div>
-            <h3 className="font-bold text-base text-[#2D2D2D]">Crop & Fit Product Photo</h3>
-            <p className="text-xs text-[#8C827A] truncate max-w-[300px]">{fileName}</p>
+            <h3 className="font-bold text-base text-[#2D2D2D]">
+              {isBanner ? 'Crop & Optimize Banner (1920 × 720 px)' : 'Crop & Fit Product Photo'}
+            </h3>
+            <p className="text-xs text-[#8C827A] truncate max-w-[300px]">
+              {fileName} {isBanner ? '• Widescreen format' : ''}
+            </p>
           </div>
           <button
             type="button"
@@ -232,7 +238,7 @@ export default function ImageCropModal({
             }`}
           >
             <Crop size={13} />
-            <span>Fill & Crop (1:1 Square)</span>
+            <span>{isBanner ? 'Fill Widescreen Banner (16:6)' : 'Fill & Crop (1:1 Square)'}</span>
           </button>
 
           <button
@@ -249,14 +255,18 @@ export default function ImageCropModal({
             }`}
           >
             <Maximize size={13} />
-            <span>Fit in Size (No Cut / Clean Border)</span>
+            <span>{isBanner ? 'Fit Whole Photo (Clean Borders)' : 'Fit in Size (No Cut / Clean Border)'}</span>
           </button>
         </div>
 
         {/* Canvas Area with drag indicator */}
         <div className="p-4 flex flex-col items-center justify-center bg-[#F2EDE4]/40">
           <div
-            className="relative w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-xl overflow-hidden border-2 border-dashed border-[#C9A84C] bg-white shadow-inner cursor-grab active:cursor-grabbing flex items-center justify-center"
+            className={`relative ${
+              isBanner
+                ? 'w-full max-w-[480px] h-[180px]'
+                : 'w-[320px] h-[320px] sm:w-[360px] sm:h-[360px]'
+            } rounded-xl overflow-hidden border-2 border-dashed border-[#C9A84C] bg-white shadow-inner cursor-grab active:cursor-grabbing flex items-center justify-center`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}

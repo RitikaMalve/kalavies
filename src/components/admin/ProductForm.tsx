@@ -760,7 +760,7 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
                   maxLength={LIMITS.SHORT_DESC}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Handcrafted ethnic oxidised jewellery with intricate detailing..."
+                  placeholder="Ethnic oxidised jewellery with intricate detailing..."
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2.5 text-sm focus:border-[#C9A84C] focus:outline-none"
                 />
               </div>

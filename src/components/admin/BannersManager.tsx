@@ -395,7 +395,7 @@ export default function BannersManager({
 
             <form onSubmit={handleBannerSubmit} className="mt-4 space-y-5">
               {/* DIRECT BANNER IMAGE UPLOAD SECTION (SAME AS PRODUCT ADD) */}
-              <div className="space-y-2 rounded-xl border-2 border-dashed border-[#E8E3DC] p-4 bg-[#FAF8F5]/60">
+              <div className="space-y-3 rounded-xl border-2 border-dashed border-[#E8E3DC] p-4 bg-[#FAF8F5]/60">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#2D2D2D]">
                     Banner Image *
@@ -405,6 +405,18 @@ export default function BannersManager({
                       <Loader2 size={14} className="animate-spin" /> Uploading & compressing...
                     </span>
                   )}
+                </div>
+
+                {/* Banner Dimension & Load Performance Guide */}
+                <div className="rounded-lg bg-amber-50/80 border border-[#C9A84C]/40 p-3 text-xs text-[#2D2D2D] space-y-1">
+                  <p className="font-bold text-[#8C6D1F] flex items-center gap-1.5">
+                    📐 Recommended Banner Dimensions & Fast-Load Guidelines:
+                  </p>
+                  <ul className="list-disc list-inside space-y-0.5 text-[11px] text-[#6B6B6B] pl-1">
+                    <li><strong>Desktop Hero:</strong> 1920 × 700 px (or 1920 × 600 px, ~16:6 aspect ratio)</li>
+                    <li><strong>Mobile / Promo:</strong> 800 × 800 px (1:1 square) or 1080 × 1080 px</li>
+                    <li><strong>Fast Load Optimization:</strong> Images are auto-compressed to WebP (under 250KB) to ensure lightning-fast website load speed.</li>
+                  </ul>
                 </div>
 
                 {/* Image Preview & Upload Controls */}
@@ -513,7 +525,7 @@ export default function BannersManager({
                 </label>
                 <input
                   type="text"
-                  placeholder="Handcrafted silver tones with antique dark finish."
+                  placeholder="Fine curated silver tones with antique dark finish."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -608,6 +620,7 @@ export default function BannersManager({
         fileName={cropModal.fileName}
         onClose={() => setCropModal((prev) => ({ ...prev, isOpen: false }))}
         onApply={handleCropApply}
+        aspectRatio="banner"
       />
     </div>
   )

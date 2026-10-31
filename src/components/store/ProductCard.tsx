@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, ShoppingBag, Eye } from 'lucide-react'
+import { Heart, ShoppingBag, Eye, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -46,11 +47,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const isOutOfStock = product.totalStock === 0
 
+  const [isAdding, setIsAdding] = useState(false)
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (isOutOfStock) return
+    if (isOutOfStock || isAdding) return
 
+    setIsAdding(true)
     addItem({
       id: `${product.id}-default`,
       productId: product.id,
@@ -62,7 +66,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       sku: product.sku,
       image: primaryImage,
     })
-    openCart()
+    setTimeout(() => {
+      setIsAdding(false)
+      openCart()
+    }, 250)
   }
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -170,11 +177,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#2D2D2D] py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#C9A84C] transition disabled:opacity-40"
+            disabled={isOutOfStock || isAdding}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#2D2D2D] py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#C9A84C] transition disabled:opacity-40 cursor-pointer"
           >
-            <ShoppingBag size={14} />
-            {isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
+            {isAdding ? <Loader2 size={14} className="animate-spin text-[#C9A84C]" /> : <ShoppingBag size={14} />}
+            {isAdding ? 'Adding...' : isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
           </button>
         </div>
       </div>

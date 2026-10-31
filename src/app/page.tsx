@@ -80,9 +80,9 @@ export default async function HomePage() {
   }
 
   const heroBanner = banners[0] || {
-    title: 'Royal Indian Handcrafted Jewellery',
+    title: 'Royal Indian Traditional & Oxidised Jewellery',
     subtitle: 'Antique Oxidised Silver & Traditional Grandeur',
-    description: 'Elevate your festive ensembles with timeless craftsmanship and authentic Indian heritage.',
+    description: 'Elevate your festive ensembles with timeless authentic Indian heritage and curated jewellery designs.',
     imageUrl: '/images/banners/banner-1.jpg',
     buttonText: 'Explore Collections',
     linkUrl: '/products',
@@ -91,45 +91,48 @@ export default async function HomePage() {
   return (
     <StoreLayout>
       {/* Hero Banner Section */}
-      <section className="relative bg-[#1A1A1A] text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-40 mix-blend-overlay">
+      <section className="relative bg-[#1A1A1A] text-white overflow-hidden shadow-2xl">
+        {/* Full-visibility background banner with rich dark gradient overlay */}
+        <div className="absolute inset-0 z-0">
           <img
             src={heroBanner.imageUrl}
-            alt="Hero Background"
-            className="w-full h-full object-cover"
+            alt={heroBanner.title || "KALAVIES Hero Banner"}
+            className="w-full h-full object-cover object-center"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/60" />
+          <div className="absolute inset-0 bg-radial from-transparent via-black/30 to-black/75" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-20 sm:py-28 lg:py-36 flex flex-col items-center text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20 sm:py-28 lg:py-36 flex flex-col items-center text-center">
           {heroBanner.subtitle && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/50 bg-black/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C9A84C] backdrop-blur-sm mb-6">
-              <Sparkles size={14} />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/80 bg-black/60 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#E0CB82] backdrop-blur-md mb-6 shadow-lg shadow-black/50">
+              <Sparkles size={14} className="text-[#C9A84C]" />
               {heroBanner.subtitle}
             </div>
           )}
 
           <h1
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight"
+            className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)]"
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
             {heroBanner.title}
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-white/80 max-w-2xl leading-relaxed">
+          <p className="mt-6 text-base sm:text-lg text-white/95 max-w-2xl leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
             {heroBanner.description ||
-              'Intricately carved oxidised silver, kundan bridal motifs, and contemporary daily essentials crafted for the modern Indian connoisseur.'}
+              'Authentic oxidised silver, Kundan bridal motifs, and contemporary daily essentials designed for the modern Indian connoisseur.'}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4 justify-center">
             <Link
               href={resolveLink(heroBanner.linkUrl)}
-              className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#B8963B] transition transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-black/60 hover:bg-[#B8963B] transition transform hover:-translate-y-0.5 border border-[#E0CB82]/50"
             >
               {heroBanner.buttonText || 'Shop Now'} <ArrowRight size={16} />
             </Link>
             <Link
               href="/products?category=oxidised-jewellery"
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition"
+              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-md hover:bg-white/20 transition shadow-lg shadow-black/40"
             >
               Oxidised Collection
             </Link>
@@ -203,7 +206,7 @@ export default async function HomePage() {
                     ? `${cat.children.length} styles`
                     : cat._count?.products !== undefined
                     ? `${cat._count.products} items`
-                    : 'Handcrafted'}
+                    : 'Curated'}
                 </p>
               </div>
               <span className="mt-3 inline-flex items-center text-[10px] font-semibold text-[#C9A84C]">
@@ -262,7 +265,7 @@ export default async function HomePage() {
                 {banners[1].title}
               </h3>
               <p className="text-xs sm:text-sm text-white/80">
-                {banners[1].description || 'Handcrafted silver tones with antique dark finish.'}
+                {banners[1].description || 'Fine curated silver tones with antique dark finish.'}
               </p>
               <div className="pt-2">
                 <Link
@@ -369,13 +372,13 @@ export default async function HomePage() {
             Rooted in Tradition, Designed for Eternity
           </h2>
           <p className="text-sm text-[#6B6B6B] leading-relaxed max-w-2xl mx-auto">
-            Every KALAVIES piece is sculpted with centuries-old Indian artisan techniques, combining antique oxidised tones, hand-set Kundan stones, and modern skin-friendly materials to accompany you from festive celebrations to everyday grace.
+            Every KALAVIES piece is thoughtfully curated, combining antique oxidised tones, stunning Kundan stones, and modern skin-friendly materials to accompany you from festive celebrations to everyday grace.
           </p>
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-3 rounded-xl bg-white border border-[#E8E3DC]/80 shadow-xs">
               <span className="text-lg block">👑</span>
-              <span className="text-xs font-bold text-[#2D2D2D] block mt-1">Artisan Handcrafted</span>
-              <span className="text-[10px] text-[#6B6B6B]">Heritage craftsmanship</span>
+              <span className="text-xs font-bold text-[#2D2D2D] block mt-1">Premium Quality</span>
+              <span className="text-[10px] text-[#6B6B6B]">Authentic designs</span>
             </div>
             <div className="p-3 rounded-xl bg-white border border-[#E8E3DC]/80 shadow-xs">
               <span className="text-lg block">🌿</span>

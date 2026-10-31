@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Award, AlertTriangle, AlertCircle } from 'lucide-react'
+import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Award, AlertTriangle, AlertCircle, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -60,6 +60,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [deliveryChecked, setDeliveryChecked] = useState(false)
   const [activeTab, setActiveTab] = useState<'DETAILS' | 'CARE' | 'SHIPPING'>('DETAILS')
   const [stockNotice, setStockNotice] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [isBuying, setIsBuying] = useState(false)
 
   const currentPrice = selectedVariant?.price || product.sellingPrice
   const currentMrp = selectedVariant?.mrp || product.mrp
@@ -97,6 +99,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     }
 
     setStockNotice(null)
+    setIsAdding(true)
     addItem({
       id: selectedVariant ? `${product.id}-${selectedVariant.id}` : `${product.id}-default`,
       productId: product.id,
@@ -110,14 +113,19 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       sku: selectedVariant ? selectedVariant.sku : product.sku,
       image: selectedImage,
     })
-    openCart()
+    setTimeout(() => {
+      setIsAdding(false)
+      openCart()
+    }, 250)
   }
 
   const handleBuyNow = () => {
+    if (isOutOfStock || isMaxStockInCart) return
+    setIsBuying(true)
     handleAddToCart()
-    if (!isOutOfStock && !isMaxStockInCart) {
+    setTimeout(() => {
       router.push('/checkout')
-    }
+    }, 200)
   }
 
   return (
@@ -329,11 +337,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock || isMaxStockInCart}
+              disabled={isOutOfStock || isMaxStockInCart || isAdding}
               className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#2D2D2D] bg-white py-3.5 text-sm font-bold text-[#2D2D2D] shadow-sm hover:bg-[#2D2D2D] hover:text-white transition disabled:opacity-40 cursor-pointer"
             >
-              <ShoppingBag size={18} />
-              {isOutOfStock
+              {isAdding ? <Loader2 size={18} className="animate-spin" /> : <ShoppingBag size={18} />}
+              {isAdding
+                ? 'Adding to Bag...'
+                : isOutOfStock
                 ? 'Out of Stock'
                 : isMaxStockInCart
                 ? `Max in Bag (${currentStock})`
@@ -341,11 +351,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </button>
             <button
               onClick={handleBuyNow}
-              disabled={isOutOfStock || isMaxStockInCart}
+              disabled={isOutOfStock || isMaxStockInCart || isBuying}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition disabled:opacity-40 cursor-pointer"
             >
-              <Zap size={18} />
-              {isOutOfStock
+              {isBuying ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
+              {isBuying
+                ? 'Redirecting to Checkout...'
+                : isOutOfStock
                 ? 'Out of Stock'
                 : isMaxStockInCart
                 ? `Max in Bag (${currentStock})`

@@ -33,14 +33,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       })
       if (category) {
         return {
-          title: `Buy Handcrafted ${category.name} Online | KALAVIES India`,
-          description: `Shop authentic handcrafted ${category.name} online at best prices. Premium oxidised silver designs, Cash on Delivery & free shipping above ₹699.`,
+          title: `Buy ${category.name} Online | KALAVIES India`,
+          description: `Shop authentic curated ${category.name} online at best prices. Premium oxidised silver designs, Cash on Delivery & free shipping above ₹699.`,
           alternates: {
             canonical: `/products?category=${categorySlug}`,
           },
           openGraph: {
             title: `${category.name} Collection | KALAVIES Jewellery`,
-            description: `Explore our handcrafted collection of ${category.name}.`,
+            description: `Explore our curated collection of ${category.name}.`,
           },
         }
       }
@@ -50,14 +50,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (search) {
     return {
       title: `Search: "${search}" | KALAVIES Jewellery`,
-      description: `Browse handcrafted jewellery search results for "${search}" at KALAVIES.`,
+      description: `Browse jewellery search results for "${search}" at KALAVIES.`,
     }
   }
 
   return {
-    title: 'All Handcrafted Jewellery Collections | KALAVIES India',
+    title: 'All Jewellery Collections | KALAVIES India',
     description:
-      'Explore handcrafted oxidised earrings, jhumkas, necklaces, chokers, bangles, and bridal jewellery sets. Free shipping above ₹699 & Cash on Delivery.',
+      'Explore authentic oxidised earrings, jhumkas, necklaces, chokers, bangles, and bridal jewellery sets. Free shipping above ₹699 & Cash on Delivery.',
     alternates: {
       canonical: '/products',
     },
@@ -186,7 +186,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
               {categorySlug ? categorySlug.replace(/-/g, ' ').toUpperCase() : 'ALL JEWELLERY'}
             </h1>
             <p className="text-xs text-[#6B6B6B] mt-1">
-              Showing {products.length} of {totalCount} handcrafted ornaments
+              Showing {products.length} of {totalCount} curated ornaments
             </p>
           </div>
 

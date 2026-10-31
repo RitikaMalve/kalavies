@@ -47,7 +47,7 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
 
       // Brand Header
       doc.fillColor('#C9A84C').fontSize(22).font('Helvetica-Bold').text('KALAVIES', { align: 'left' })
-      doc.fillColor('#6B6B6B').fontSize(9).font('Helvetica').text('FINE HANDCRAFTED JEWELLERY')
+      doc.fillColor('#6B6B6B').fontSize(9).font('Helvetica').text('FINE TRADITIONAL JEWELLERY')
       doc.moveDown(0.3)
       doc.fillColor('#4B5563').fontSize(9).font('Helvetica').text(data.businessName || 'KALAVIES Jewellery Pvt Ltd')
       doc.text(data.businessAddress || '108, Jewellery Palace, MG Road, Bangalore, Karnataka, 560001')
@@ -147,7 +147,7 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.strokeColor('#E5E7EB').lineWidth(1).moveTo(45, footerY).lineTo(550, footerY).stroke()
       doc.fontSize(7.5).fillColor('#6B6B6B').font('Helvetica')
       doc.text(
-        'Terms & Conditions: 1. All jewellery products are handcrafted and quality certified. 2. Please store in airtight pouches away from water and perfume. 3. This is a computer generated invoice and does not require a physical signature.',
+        'Terms & Conditions: 1. All jewellery products are certified for quality and premium finish. 2. Please store in airtight pouches away from water and perfume. 3. This is a computer generated invoice and does not require a physical signature.',
         45,
         footerY + 10,
         { width: 505, align: 'center' }

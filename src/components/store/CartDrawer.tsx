@@ -109,7 +109,7 @@ export default function CartDrawer() {
                 </div>
                 <h3 className="font-semibold text-base text-[#2D2D2D]">Your bag is empty</h3>
                 <p className="text-xs text-[#6B6B6B] max-w-xs mt-1 mb-6">
-                  Explore our handcrafted oxidised and traditional jewellery collections to add your favourites.
+                  Explore our oxidised and traditional jewellery collections to add your favourites.
                 </p>
                 <Link
                   href="/products"

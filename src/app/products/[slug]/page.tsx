@@ -31,10 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const ogImage = product.images?.[0]?.url || '/logo-circle.png'
     const desc = product.metaDescription || (product.description
       ? product.description.slice(0, 155)
-      : `Buy ${product.name} handcrafted ${product.category?.name || 'jewellery'} online at ₹${price}. Premium finish, authentic design & Cash on Delivery across India.`)
+      : `Buy ${product.name} ${product.category?.name || 'jewellery'} online at ₹${price}. Premium finish, authentic design & Cash on Delivery across India.`)
 
     return {
-      title: product.seoTitle || `${product.name} - Handcrafted ${product.category?.name || 'Jewellery'}`,
+      title: product.seoTitle || `${product.name} - ${product.category?.name || 'Jewellery'}`,
       description: desc,
       alternates: {
         canonical: `/products/${product.slug}`,
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {
     return {
-      title: 'KALAVIES Handcrafted Jewellery',
+      title: 'KALAVIES Jewellery',
     }
   }
 }

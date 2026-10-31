@@ -1,20 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { CartProvider } from "@/hooks/useCart";
 import { WishlistProvider } from "@/hooks/useWishlist";
 import CartDrawer from "@/components/store/CartDrawer";
 import PWARegister from "@/components/shared/PWARegister";
+import TopLoader from "@/components/shared/TopLoader";
 
 const siteUrl = 'https://kalavies.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "KALAVIES Jewellery | Handcrafted Oxidised & Traditional Heritage Jewellery",
+    default: "KALAVIES Jewellery | Premium Oxidised, Anti-Tarnish & Traditional Jewellery",
     template: "%s | KALAVIES Jewellery",
   },
   description:
-    "Discover handcrafted oxidised silver jewellery, antique temple sets, bridal chokers, designer jhumkas, and timeless ethnic accessories from KALAVIES India. Free delivery over ₹699.",
+    "Discover authentic oxidised silver jewellery, antique temple sets, bridal chokers, designer jhumkas, and timeless ethnic accessories from KALAVIES India. Free delivery over ₹699.",
   manifest: "/manifest.json",
   alternates: {
     canonical: "/",
@@ -37,9 +39,9 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: siteUrl,
     siteName: "KALAVIES Jewellery",
-    title: "KALAVIES Jewellery | Handcrafted Oxidised & Heritage Jewellery Online",
+    title: "KALAVIES Jewellery | Premium Oxidised & Traditional Jewellery Online",
     description:
-      "Shop handcrafted oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India. Cash on delivery & free shipping above ₹699.",
+      "Shop authentic oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India. Cash on delivery & free shipping above ₹699.",
     images: [
       {
         url: "/logo-circle.png",
@@ -51,9 +53,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "KALAVIES Jewellery | Handcrafted Oxidised & Heritage Jewellery",
+    title: "KALAVIES Jewellery | Premium Oxidised & Traditional Jewellery",
     description:
-      "Shop handcrafted oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India.",
+      "Shop authentic oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India.",
     images: ["/logo-circle.png"],
   },
   robots: {
@@ -68,17 +70,21 @@ export const metadata: Metadata = {
     },
   },
   keywords: [
+    "kalavies",
+    "kalavies jewellery",
     "oxidised jewellery online",
     "oxidised silver jewellery",
-    "handcrafted jewellery India",
+    "anti-tarnish jewellery online",
+    "silver plated jewellery",
+    "oxidised jewellery nagpur",
     "silver jhumkas online",
     "oxidised necklace set",
+    "garba jewellery kalavies",
+    "navratri jewellery",
     "traditional temple jewellery",
     "artificial jewellery online",
     "boho silver accessories",
     "bangles and rings online",
-    "KALAVIES",
-    "kalavies jewellery",
   ],
 };
 
@@ -102,8 +108,15 @@ export default function RootLayout({
         "@id": "https://kalavies.com/#organization",
         name: "KALAVIES Jewellery",
         url: "https://kalavies.com",
-        logo: "https://kalavies.com/logo-circle.png",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://kalavies.com/logo-circle.png",
+          width: "500",
+          height: "500",
+        },
+        image: "https://kalavies.com/logo-circle.png",
         sameAs: [
+          "https://www.instagram.com/kalavies",
           "https://www.instagram.com/kalavies.jewellery",
         ],
       },
@@ -113,7 +126,7 @@ export default function RootLayout({
         url: "https://kalavies.com",
         name: "KALAVIES Jewellery",
         description:
-          "Handcrafted Oxidised Silver & Traditional Heritage Jewellery in India",
+          "Premium Oxidised Silver, Anti-Tarnish & Traditional Heritage Jewellery in India",
         publisher: {
           "@id": "https://kalavies.com/#organization",
         },
@@ -135,6 +148,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#FAF8F5] text-[#2D2D2D] selection:bg-[#C9A84C] selection:text-white font-sans">
+        <Suspense fallback={null}>
+          <TopLoader />
+        </Suspense>
         <CartProvider>
           <WishlistProvider>
             <PWARegister />

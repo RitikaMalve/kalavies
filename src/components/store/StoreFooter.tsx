@@ -5,27 +5,27 @@ export default function StoreFooter() {
   return (
     <footer className="border-t border-[#E8E3DC] bg-[#1A1A1A] text-white">
       {/* Guarantees bar */}
-      <div className="border-b border-white/10 bg-[#242424] py-8">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="flex flex-col items-center gap-2">
+      <div className="border-b border-white/10 bg-[#222222] py-8">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <Award className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-semibold tracking-wide">100% Certified Purity</h4>
-            <p className="text-xs text-white/60">Authentic oxidised silver & premium craftsmanship</p>
+            <h4 className="text-sm font-bold text-white tracking-wide">100% Certified Purity</h4>
+            <p className="text-xs text-white/75">Authentic oxidised silver & premium quality finish</p>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <Truck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-semibold tracking-wide">Free Express Shipping</h4>
-            <p className="text-xs text-white/60">On all prepaid & COD orders above ₹699</p>
+            <h4 className="text-sm font-bold text-white tracking-wide">Free Express Shipping</h4>
+            <p className="text-xs text-white/75">On all prepaid & COD orders above ₹699</p>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <RefreshCw className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-semibold tracking-wide">7-Day Easy Returns</h4>
-            <p className="text-xs text-white/60">Hassle-free replacement guarantee</p>
+            <h4 className="text-sm font-bold text-white tracking-wide">7-Day Easy Returns</h4>
+            <p className="text-xs text-white/75">Hassle-free replacement guarantee</p>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-semibold tracking-wide">Secure Checkout</h4>
-            <p className="text-xs text-white/60">Cash on Delivery (COD) at your doorstep</p>
+            <h4 className="text-sm font-bold text-white tracking-wide">Secure Checkout</h4>
+            <p className="text-xs text-white/75">Cash on Delivery (COD) at your doorstep</p>
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@ export default function StoreFooter() {
             </div>
           </Link>
           <p className="text-xs text-white/70 leading-relaxed mb-4">
-            Curating exquisite antique oxidised silver, handcrafted temple jewellery, and modern party statements celebrating Indian heritage with contemporary finesse.
+            Curating exquisite antique oxidised silver, traditional temple jewellery, and modern party statements celebrating Indian heritage with contemporary finesse.
           </p>
           <div className="text-xs text-white/70 space-y-1.5">
             <p className="flex items-center gap-2">
@@ -164,9 +164,19 @@ export default function StoreFooter() {
       </div>
 
       <div className="border-t border-white/10 py-6 text-center text-xs text-white/50">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <p>© {new Date().getFullYear()} KALAVIES Jewellery. All rights reserved.</p>
-          <p className="text-white/40">Handcrafted with elegance in India</p>
+          <div className="flex items-center gap-1.5 text-white/70">
+            <span>Designed &amp; Developed by</span>
+            <a
+              href="https://deveraa.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-[#C9A84C] hover:text-[#E0CB82] transition underline underline-offset-4 decoration-[#C9A84C]/60"
+            >
+              Deveraa
+            </a>
+          </div>
         </div>
       </div>
     </footer>
