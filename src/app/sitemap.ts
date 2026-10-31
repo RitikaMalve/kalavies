@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export const revalidate = 3600 // Regenerate sitemap every hour
 
-const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://kalavies.com' : 'http://localhost:3000'
+const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://www.kalavies.com' : 'http://localhost:3000'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [

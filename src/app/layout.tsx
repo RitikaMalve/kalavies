@@ -7,7 +7,7 @@ import CartDrawer from "@/components/store/CartDrawer";
 import PWARegister from "@/components/shared/PWARegister";
 import TopLoader from "@/components/shared/TopLoader";
 
-const siteUrl = 'https://kalavies.com'
+const siteUrl = 'https://www.kalavies.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -108,16 +108,16 @@ export default function RootLayout({
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://kalavies.com/#organization",
+        "@id": "https://www.kalavies.com/#organization",
         name: "KALAVIES Jewellery",
-        url: "https://kalavies.com",
+        url: "https://www.kalavies.com",
         logo: {
           "@type": "ImageObject",
-          url: "https://kalavies.com/logo-circle.png",
+          url: "https://www.kalavies.com/logo-circle.png",
           width: "500",
           height: "500",
         },
-        image: "https://kalavies.com/logo-circle.png",
+        image: "https://www.kalavies.com/logo-circle.png",
         sameAs: [
           "https://www.instagram.com/kalavies",
           "https://www.instagram.com/kalavies.jewellery",
@@ -125,17 +125,17 @@ export default function RootLayout({
       },
       {
         "@type": "WebSite",
-        "@id": "https://kalavies.com/#website",
-        url: "https://kalavies.com",
+        "@id": "https://www.kalavies.com/#website",
+        url: "https://www.kalavies.com",
         name: "KALAVIES Jewellery",
         description:
           "Premium Oxidised Silver, Anti-Tarnish & Traditional Heritage Jewellery in India",
         publisher: {
-          "@id": "https://kalavies.com/#organization",
+          "@id": "https://www.kalavies.com/#organization",
         },
         potentialAction: {
           "@type": "SearchAction",
-          target: "https://kalavies.com/products?search={search_term_string}",
+          target: "https://www.kalavies.com/products?search={search_term_string}",
           "query-input": "required name=search_term_string",
         },
       },

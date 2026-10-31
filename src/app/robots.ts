@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://kalavies.com' : 'http://localhost:3000'
+const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://www.kalavies.com' : 'http://localhost:3000'
 
 export default function robots(): MetadataRoute.Robots {
   return {
