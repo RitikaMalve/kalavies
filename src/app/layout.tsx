@@ -69,6 +69,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "googled6cf278dbff60a7f",
+  },
   keywords: [
     "kalavies",
     "kalavies jewellery",
