@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "googled6cf278dbff60a7f",
+    google: ["googled6cf278dbff60a7f", "google0cac7971f9d38375"],
   },
   keywords: [
     "kalavies",
