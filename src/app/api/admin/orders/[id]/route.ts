@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { restoreOrderInventoryStock } from '@/lib/stock'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -26,28 +27,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
 
     const wasCancelledBefore = order.status === 'CANCELLED'
-    const isNowCancelled = status === 'CANCELLED'
+    const isNowCancelled = status === 'CANCELLED' || paymentStatus === 'REJECTED'
 
-    // If order is newly cancelled, restore product stocks!
+    // If order is newly cancelled or payment rejected, restore product stocks back!
     if (!wasCancelledBefore && isNowCancelled) {
-      for (const item of order.items) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { totalStock: { increment: item.quantity } },
-        })
-
-        await prisma.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: 'RETURN',
-            quantity: item.quantity,
-            reason: `Order ${order.orderNumber} cancelled by admin`,
-            adminId: user.id,
-            previousQty: 0,
-            newQty: item.quantity,
-          },
-        })
-      }
+      await restoreOrderInventoryStock(
+        prisma,
+        order.id,
+        `Order ${order.orderNumber} cancelled/failed (Status: ${status}, Payment: ${paymentStatus})`,
+        user.id
+      )
     }
 
     const updated = await prisma.order.update({

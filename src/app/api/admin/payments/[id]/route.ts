@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { generateInvoiceNumber } from '@/lib/utils'
+import { restoreOrderInventoryStock } from '@/lib/stock'
 
 export const dynamic = 'force-dynamic'
 
@@ -98,8 +99,8 @@ export async function POST(req: NextRequest, { params }: Props) {
               orderId: order.id,
               invoiceNumber,
               businessName: 'KALAVIES Jewellery',
-              businessAddress: 'KALAVIES Studio, Civil Lines, Nagpur, Maharashtra, 440001',
-              businessGstin: '27ABCDE1234F1Z5',
+              businessAddress: 'KALAVIES Studio, Civil Lines, Nagpur, Maharashtra - 440034',
+              businessGstin: null,
               customerName: order.shippingName || `${order.user?.firstName || 'Customer'}`,
               customerEmail: order.user?.email || 'customer@kalavies.com',
               customerPhone: order.shippingPhone || order.user?.phone || null,
@@ -150,15 +151,21 @@ export async function POST(req: NextRequest, { params }: Props) {
           },
         })
 
-        // 2. Update Order paymentStatus to REJECTED
+        // 2. Update Order paymentStatus to REJECTED and order status to CANCELLED
         await tx.order.update({
           where: { id: order.id },
           data: {
             paymentStatus: 'REJECTED',
+            status: 'CANCELLED',
+            cancelReason: `Payment Rejected: ${reason}`,
+            cancelledAt: new Date(),
           },
         })
 
-        // 3. Send Customer Notification with rejection reason
+        // 3. Automatically restore inventory stock for failed/rejected payment
+        await restoreOrderInventoryStock(tx, order.id, `Payment Rejected: ${reason}`, user.id)
+
+        // 4. Send Customer Notification with rejection reason
         if (order.userId) {
           await tx.notification.create({
             data: {

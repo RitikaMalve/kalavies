@@ -538,7 +538,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="e.g. 440001"
+                    placeholder="e.g. 440034"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none font-mono"

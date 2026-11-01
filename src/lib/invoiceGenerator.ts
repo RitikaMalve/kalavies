@@ -6,7 +6,7 @@ export interface InvoiceData {
   issuedAt: Date | string
   businessName: string
   businessAddress: string
-  businessGstin: string
+  businessGstin?: string | null
   customerName: string
   customerEmail?: string | null
   customerPhone?: string | null
@@ -50,11 +50,10 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.fillColor('#6B6B6B').fontSize(9).font('Helvetica').text('FINE TRADITIONAL JEWELLERY')
       doc.moveDown(0.3)
       doc.fillColor('#4B5563').fontSize(9).font('Helvetica').text(data.businessName || 'KALAVIES Jewellery')
-      doc.text(data.businessAddress || 'KALAVIES Studio, Civil Lines, Nagpur, Maharashtra, 440001')
-      doc.text(`GSTIN: ${data.businessGstin || '27ABCDE1234F1Z5'}`)
+      doc.text(data.businessAddress || 'KALAVIES Studio, Civil Lines, Nagpur, Maharashtra - 440034')
 
       // Invoice Title & Info on Right
-      doc.fontSize(16).fillColor('#1A1A1A').font('Helvetica-Bold').text('TAX INVOICE', 350, 45, { align: 'right' })
+      doc.fontSize(16).fillColor('#1A1A1A').font('Helvetica-Bold').text('RETAIL INVOICE', 350, 45, { align: 'right' })
       if (data.type && data.type !== 'STANDARD') {
         doc.fontSize(8).fillColor('#B45309').text(`[${data.type.replace('_', ' ')}]`, 350, 65, { align: 'right' })
       }
@@ -84,7 +83,6 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.fontSize(9).font('Helvetica').fillColor('#374151')
       doc.text(`Shipping Mode: Standard Express Delivery`, 350, 180)
       doc.text(`Tracking: ${data.trackingNumber || 'Generated upon dispatch'}`, 350, 195)
-      doc.text(`Place of Supply: Maharashtra (State Code 27)`, 350, 210)
 
       // Table Header
       const tableTop = 260
@@ -183,13 +181,12 @@ export function generateInvoiceHtml(data: InvoiceData, includePageBreak: boolean
           </div>
           <p style="font-size: 11px; color: #6B6B6B; line-height: 1.4; margin: 0;">
             <strong>${data.businessName}</strong><br>
-            ${data.businessAddress}<br>
-            <strong>GSTIN:</strong> ${data.businessGstin}
+            ${data.businessAddress}
           </p>
         </div>
 
         <div style="text-align: right;">
-          <div style="font-size: 20px; font-weight: 800; color: #C9A84C; letter-spacing: 1px;">TAX INVOICE</div>
+          <div style="font-size: 20px; font-weight: 800; color: #C9A84C; letter-spacing: 1px;">RETAIL INVOICE</div>
           ${data.type && data.type !== 'STANDARD' ? `<span style="display: inline-block; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-top: 4px;">${data.type.replace('_', ' ')}</span>` : ''}
           <div style="margin-top: 8px; font-size: 12px; color: #4B5563;">
             <p style="margin: 2px 0;"><strong>Invoice #:</strong> <span style="font-family: monospace; font-weight: bold; color: #111;">${data.invoiceNumber}</span></p>
@@ -217,8 +214,7 @@ export function generateInvoiceHtml(data: InvoiceData, includePageBreak: boolean
           <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #9CA3AF; display: block; margin-bottom: 6px;">Dispatch Details</span>
           <p style="font-size: 12px; color: #4B5563; margin: 0; line-height: 1.5;">
             <strong>Shipping Mode:</strong> Standard Insured Express<br>
-            <strong>Tracking No:</strong> ${data.trackingNumber || 'Available upon dispatch'}<br>
-            <strong>Place of Supply:</strong> Maharashtra (State Code 27)
+            <strong>Tracking No:</strong> ${data.trackingNumber || 'Available upon dispatch'}
           </p>
         </div>
       </div>
