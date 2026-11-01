@@ -178,9 +178,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock || isAdding}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#2D2D2D] py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#C9A84C] transition disabled:opacity-40 cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C9A84C] py-2 text-xs font-bold text-white shadow-sm hover:bg-[#B8963B] transition disabled:opacity-40 cursor-pointer"
           >
-            {isAdding ? <Loader2 size={14} className="animate-spin text-[#C9A84C]" /> : <ShoppingBag size={14} />}
+            {isAdding ? <Loader2 size={14} className="animate-spin text-white" /> : <ShoppingBag size={14} />}
             {isAdding ? 'Adding...' : isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
           </button>
         </div>

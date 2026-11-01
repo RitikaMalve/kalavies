@@ -149,9 +149,21 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
           {/* Desktop Category Navigation */}
           <nav className="hidden md:flex items-center gap-1 pb-2 -mx-2">
             <Link
+              href="/"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                pathname === '/'
+                  ? 'text-[#C9A84C] font-bold border-b-2 border-[#C9A84C]'
+                  : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-amber-50/60'
+              }`}
+            >
+              Home
+            </Link>
+            <Link
               href="/products"
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                pathname === '/products' ? 'text-[#C9A84C]' : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-[#FAF8F5]'
+                pathname === '/products'
+                  ? 'text-[#C9A84C] font-bold border-b-2 border-[#C9A84C]'
+                  : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-amber-50/60'
               }`}
             >
               All Jewellery
@@ -166,7 +178,7 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
                 <Link
                   href={`/products?category=${category.slug}`}
                   className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    pathname.includes(category.slug) ? 'text-[#C9A84C]' : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-[#FAF8F5]'
+                    pathname.includes(category.slug) ? 'text-[#C9A84C] font-semibold' : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-amber-50/60'
                   }`}
                 >
                   {category.name}
@@ -180,7 +192,7 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
                       <Link
                         key={child.id}
                         href={`/products?category=${child.slug}`}
-                        className="block px-4 py-2 text-sm text-[#2D2D2D] hover:bg-[#FAF8F5] hover:text-[#C9A84C] transition-colors"
+                        className="block px-4 py-2 text-sm text-[#2D2D2D] hover:bg-amber-50/60 hover:text-[#C9A84C] transition-colors"
                       >
                         {child.name}
                       </Link>
@@ -226,9 +238,24 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
           <div className="md:hidden border-t border-[#E8E3DC] bg-white max-h-[70vh] overflow-y-auto">
             <div className="p-4 space-y-1">
               <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  pathname === '/'
+                    ? 'text-[#C9A84C] font-bold bg-amber-50/80 border-l-4 border-[#C9A84C]'
+                    : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-amber-50/50'
+                }`}
+              >
+                Home
+              </Link>
+              <Link
                 href="/products"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2.5 text-sm font-medium text-[#2D2D2D] hover:bg-[#FAF8F5] rounded-lg"
+                className={`block px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  pathname === '/products'
+                    ? 'text-[#C9A84C] font-bold bg-amber-50/80 border-l-4 border-[#C9A84C]'
+                    : 'text-[#2D2D2D] hover:text-[#C9A84C] hover:bg-amber-50/50'
+                }`}
               >
                 All Jewellery
               </Link>

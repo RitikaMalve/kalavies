@@ -132,7 +132,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/products?category=oxidised-jewellery"
-              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/40 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-md hover:bg-white/20 transition shadow-lg shadow-black/40"
+              className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-white/10 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-md hover:bg-[#C9A84C] hover:text-white transition shadow-lg"
             >
               Oxidised Collection
             </Link>
