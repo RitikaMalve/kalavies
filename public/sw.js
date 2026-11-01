@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kalavies-cache-v1'
+const CACHE_NAME = 'kalavies-cache-v2'
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

@@ -77,16 +77,68 @@ export default async function HomePage() {
       }),
     ])
 
-    banners = results[0]
-    categories = results[1]
-    trendingProducts = results[2]
-    bestsellers = results[3]
-    newArrivals = results[4]
-    coupons = results[5]
-    testimonials = results[6]
+  banners = results[0] || []
+    categories = results[1] || []
+    trendingProducts = results[2] || []
+    bestsellers = results[3] || []
+    newArrivals = results[4] || []
+    coupons = results[5] || []
+    testimonials = results[6] || []
   } catch (error) {
     console.error('Error fetching homepage data:', error)
   }
+
+  const fallbackCategories = [
+    {
+      id: 'cat-oxidised',
+      name: 'Oxidised Jewellery',
+      slug: 'oxidised-jewellery',
+      image: '/images/categories/oxidised-jewellery.jpg',
+      _count: { products: 12 },
+    },
+    {
+      id: 'cat-earrings',
+      name: 'Earrings',
+      slug: 'earrings',
+      image: '/images/categories/earrings.jpg',
+      _count: { products: 24 },
+    },
+    {
+      id: 'cat-nose-pins',
+      name: 'Nose Pins',
+      slug: 'nose-pins',
+      image: '/images/categories/nose-pins.jpg',
+      _count: { products: 8 },
+    },
+    {
+      id: 'cat-necklaces',
+      name: 'Necklaces',
+      slug: 'necklaces',
+      image: '/images/categories/necklaces.jpg',
+      _count: { products: 15 },
+    },
+    {
+      id: 'cat-bangles',
+      name: 'Bangles',
+      slug: 'bangles',
+      image: '/images/categories/bangles.jpg',
+      _count: { products: 10 },
+    },
+    {
+      id: 'cat-rings',
+      name: 'Rings',
+      slug: 'rings',
+      image: '/images/categories/rings.jpg',
+      _count: { products: 14 },
+    },
+  ]
+
+  const displayCategories =
+    categories.length === 0
+      ? fallbackCategories
+      : categories.length === 1 && categories[0].children?.length > 0
+      ? [categories[0], ...categories[0].children]
+      : categories
 
   const heroBanner = banners[0] || {
     title: 'Royal Indian Traditional & Oxidised Jewellery',
@@ -161,10 +213,7 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {(categories.length === 1 && categories[0].children?.length > 0
-            ? [categories[0], ...categories[0].children]
-            : categories
-          ).map((cat: any) => {
+          {displayCategories.map((cat: any) => {
             const catImage = CATEGORY_REAL_IMAGES[cat.slug] || cat.image || '/images/categories/oxidised-jewellery.jpg'
             return (
               <Link
