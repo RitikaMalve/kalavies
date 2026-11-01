@@ -91,13 +91,6 @@ export default async function HomePage() {
 
   const fallbackCategories = [
     {
-      id: 'cat-oxidised',
-      name: 'Oxidised Jewellery',
-      slug: 'oxidised-jewellery',
-      image: '/images/categories/oxidised-jewellery.jpg?v=20261101',
-      _count: { products: 12 },
-    },
-    {
       id: 'cat-earrings',
       name: 'Earrings',
       slug: 'earrings',
@@ -134,10 +127,19 @@ export default async function HomePage() {
     },
   ]
 
-  const displayCategories =
+  // Strictly show ONLY the 5 core essentials: Earrings, Nose Pins, Necklaces, Bangles, Rings
+  const CORE_CATEGORY_SLUGS = ['earrings', 'nose-pins', 'necklaces', 'bangles', 'rings']
+
+  const allAvailableCategories =
     categories.length === 0
       ? fallbackCategories
       : categories.flatMap((c) => (c.children && c.children.length > 0 ? [c, ...c.children] : [c]))
+
+  const displayCategories = CORE_CATEGORY_SLUGS.map((slug) => {
+    const found = allAvailableCategories.find((c) => c.slug === slug)
+    if (found) return found
+    return fallbackCategories.find((c) => c.slug === slug)
+  }).filter(Boolean) as typeof fallbackCategories
 
   return (
     <StoreLayout>
@@ -178,7 +180,7 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {displayCategories.map((cat: any) => {
             const catImage = CATEGORY_REAL_IMAGES[cat.slug] || cat.image || '/images/categories/oxidised-jewellery.jpg'
             return (

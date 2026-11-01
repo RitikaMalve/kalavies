@@ -37,12 +37,12 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
   const bannerList: BannerItem[] = banners.length > 0 ? banners : [
     {
       id: 'default-hero-gold',
-      title: 'The Gold & Champagne Collection',
-      subtitle: 'CONTEMPORARY GOLD & TIMELESS ALLURE',
-      description: 'Sculptural gold wave cuffs, luminous dome earrings, and minimalist everyday brilliance.',
-      imageUrl: '/images/banners/hero-gold-jewellery.jpg?v=20261101c',
+      title: 'Royal Filigree Gold Kada',
+      subtitle: 'AUTHENTIC 22K ANTIQUE GOLD CRAFT',
+      description: 'Handcrafted with imperial floral openwork, embossed medallions, and timeless Indian artistry.',
+      imageUrl: '/images/banners/hero-gold-jewellery.jpg?v=20261101e',
       buttonText: 'Shop Now',
-      linkUrl: '/products',
+      linkUrl: '/products?category=bangles',
     },
     {
       id: 'default-hero-1',
