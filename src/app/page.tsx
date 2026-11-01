@@ -8,12 +8,11 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } fro
 export const dynamic = 'force-dynamic'
 
 const CATEGORY_REAL_IMAGES: Record<string, string> = {
-  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg?v=20261101',
-  'earrings': '/images/categories/earrings.jpg?v=20261101',
-  'nose-pins': '/images/categories/nose-pins.jpg?v=20261101',
-  'necklaces': '/images/categories/necklaces.jpg?v=20261101',
-  'bangles': '/images/categories/bangles.jpg?v=20261101',
-  'rings': '/images/categories/rings.jpg?v=20261101',
+  'earrings': '/images/categories/earrings.jpg?v=20261102',
+  'nose-pins': '/images/categories/nose-pins.jpg?v=20261102',
+  'necklaces': '/images/categories/necklaces.jpg?v=20261102',
+  'bangles': '/images/categories/bangles.jpg?v=20261102',
+  'rings': '/images/categories/rings.jpg?v=20261102',
 }
 
 function resolveLink(url?: string | null): string {
@@ -176,7 +175,7 @@ export default async function HomePage() {
             Curated Jewellery Universes
           </h2>
           <p className="text-xs sm:text-sm text-[#6B6B6B] mt-2">
-            From regal oxidised heritage sets to lightweight everyday sparkle.
+            Affordable gold and silver-tone imitation jewellery for everyday use and special occasions.
           </p>
         </div>
 
@@ -335,10 +334,10 @@ export default async function HomePage() {
             className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1A1A] mb-4"
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
-            Rooted in Tradition, Designed for Eternity
+            Everyday Elegance, Made Affordable
           </h2>
           <p className="text-sm text-[#6B6B6B] leading-relaxed max-w-2xl mx-auto">
-            Every KALAVIES piece is thoughtfully curated, combining antique oxidised tones, stunning Kundan stones, and modern skin-friendly materials to accompany you from festive celebrations to everyday grace.
+            Kalavies offers affordable, stylish gold-tone and silver-tone imitation jewellery for everyday use, casual outfits, and special occasions. Feather-light, skin-friendly pieces designed to elevate your everyday sparkle.
           </p>
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-3 rounded-xl bg-white border border-[#E8E3DC]/80 shadow-xs">

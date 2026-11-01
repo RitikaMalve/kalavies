@@ -51,7 +51,7 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
           </div>
           <div className="flex items-center gap-4">
             <span>Free Shipping on orders above ₹699</span>
-            <span className="text-amber-400 font-medium">✨ Premium Oxidised & Traditional Jewellery</span>
+            <span className="text-amber-400 font-medium">✨ Affordable, Stylish Daily-Wear Gold &amp; Silver Imitation Jewellery</span>
           </div>
         </div>
       </div>

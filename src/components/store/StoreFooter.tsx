@@ -10,7 +10,7 @@ export default function StoreFooter() {
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <Sparkles className="w-6 h-6 text-[#C9A84C]" />
             <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>100% Authentic Jewellery</h4>
-            <p className="text-xs text-stone-300">Handcrafted oxidised silver & artisanal finish</p>
+            <p className="text-xs text-stone-300">Stylish gold &amp; silver tone lightweight designs</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <Truck className="w-6 h-6 text-[#C9A84C]" />
@@ -54,7 +54,7 @@ export default function StoreFooter() {
             </div>
           </Link>
           <p className="text-xs text-white/70 leading-relaxed mb-4">
-            Curating exquisite antique oxidised silver, traditional temple jewellery, and modern party statements celebrating Indian heritage with contemporary finesse.
+            Kalavies offers affordable, stylish imitation jewellery for everyday use, casual outfits, and special occasions. Lightweight, minimal, and trendy designs crafted to shine effortlessly.
           </p>
           <div className="text-xs text-white/70 space-y-1.5">
             <p className="flex items-center gap-2">
