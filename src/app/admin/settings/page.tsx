@@ -16,7 +16,7 @@ export default async function AdminSettingsPage() {
           id: '',
           businessName: 'KALAVIES Jewellery',
           tagline: 'Elegance in Every Detail',
-          email: 'hello@kalavies.com',
+          email: 'contact@kalavies.com',
           phone: '+91 98765 43210',
           whatsapp: '+91 98765 43210',
           addressLine1: '108, Jewellery Palace, MG Road',

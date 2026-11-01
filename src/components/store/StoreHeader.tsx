@@ -45,12 +45,9 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
       <div className="bg-[#1A1A1A] text-white/80 text-xs py-2 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3" /> +91 98765 43210
-            </span>
-            <span className="flex items-center gap-1">
-              <Mail className="w-3 h-3" /> hello@kalavies.com
-            </span>
+            <a href="mailto:contact@kalavies.com" className="flex items-center gap-1 hover:text-[#C9A84C] transition">
+              <Mail className="w-3 h-3 text-[#C9A84C]" /> contact@kalavies.com
+            </a>
           </div>
           <div className="flex items-center gap-4">
             <span>Free Shipping on orders above ₹699</span>

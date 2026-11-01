@@ -251,42 +251,53 @@ export default async function HomePage() {
       )}
 
       {/* Promotional Middle Banner */}
-      {banners[1] && (
-        <section className="max-w-7xl mx-auto px-4 py-12">
-          <div className="relative rounded-2xl overflow-hidden bg-[#1A1A1A] text-white p-8 sm:p-14 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-xl space-y-3 text-center md:text-left">
-              <span className="rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/40 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#C9A84C]">
-                {banners[1].subtitle || 'Exclusive Offer'}
-              </span>
-              <h3
-                className="text-2xl sm:text-4xl font-extrabold"
-                style={{ fontFamily: 'Playfair Display, serif' }}
-              >
-                {banners[1].title}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/80">
-                {banners[1].description || 'Fine curated silver tones with antique dark finish.'}
-              </p>
-              <div className="pt-2">
-                <Link
-                  href={resolveLink(banners[1].linkUrl)}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#B8963B] transition"
+      {(() => {
+        const promoBanner = banners[1] || {
+          title: 'Royal Antique Oxidised Collection',
+          subtitle: 'Curated Heritage Jewellery',
+          description: 'Fine curated silver tones with antique dark finish, crafted for celebrations and everyday grace. Free shipping on orders above ₹699.',
+          imageUrl: '/images/banners/banner-2.jpg',
+          buttonText: 'Discover Now',
+          linkUrl: '/products?category=oxidised-jewellery',
+        }
+
+        return (
+          <section className="max-w-7xl mx-auto px-4 py-12">
+            <div className="relative rounded-2xl overflow-hidden bg-[#1A1A1A] text-white p-8 sm:p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl border border-[#C9A84C]/30">
+              <div className="max-w-xl space-y-3 text-center md:text-left">
+                <span className="rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/40 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#C9A84C]">
+                  {promoBanner.subtitle || 'Exclusive Offer'}
+                </span>
+                <h3
+                  className="text-2xl sm:text-4xl font-extrabold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+                  style={{ fontFamily: 'Playfair Display, serif' }}
                 >
-                  {banners[1].buttonText || 'Discover Now'} <ArrowRight size={14} />
-                </Link>
+                  {promoBanner.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/85 leading-relaxed">
+                  {promoBanner.description || 'Fine curated silver tones with antique dark finish.'}
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href={resolveLink(promoBanner.linkUrl)}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#B8963B] transition shadow-lg shadow-black/50"
+                  >
+                    {promoBanner.buttonText || 'Discover Now'} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="h-48 w-48 sm:h-64 sm:w-64 rounded-2xl border-2 border-[#C9A84C]/40 overflow-hidden shadow-2xl shrink-0">
+                <img
+                  src={promoBanner.imageUrl}
+                  alt={promoBanner.title || 'Promo Banner'}
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
-
-            <div className="h-48 w-48 sm:h-64 sm:w-64 rounded-full border-4 border-[#C9A84C]/40 overflow-hidden shadow-2xl shrink-0">
-              <img
-                src={banners[1].imageUrl}
-                alt="Promo"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )
+      })()}
 
       {/* Bestsellers Section */}
       {bestsellers.length > 0 && (
