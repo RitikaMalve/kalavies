@@ -229,16 +229,65 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
           {/* Payment Method Details */}
           <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-3">
-            <h3 className="font-semibold text-[#2D2D2D]">Payment Method</h3>
+            <h3 className="font-semibold text-[#2D2D2D]">UPI Payment & Verification</h3>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-[#2D2D2D] uppercase">{order.paymentMethod}</span>
+              <span className="font-semibold text-[#2D2D2D] uppercase">
+                {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'UPI QR Transfer'}
+              </span>
               <StatusBadge status={order.paymentStatus} type="payment" />
             </div>
-            {order.razorpayPaymentId && (
-              <p className="text-xs text-[#6B6B6B] font-mono">
-                Razorpay ID: {order.razorpayPaymentId}
-              </p>
+
+            {order.payments.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-[#E8E3DC] text-xs">
+                {order.payments[0].utrNumber && (
+                  <div>
+                    <span className="text-gray-500 block">Submitted UTR / Ref:</span>
+                    <span className="font-mono font-bold text-sm text-[#1A1A1A] bg-amber-50 px-2 py-0.5 rounded border border-[#C9A84C]/30 inline-block mt-0.5">
+                      {order.payments[0].utrNumber}
+                    </span>
+                  </div>
+                )}
+
+                {order.payments[0].paymentScreenshotUrl && (
+                  <div className="pt-1">
+                    <span className="text-gray-500 block mb-1">Receipt Screenshot:</span>
+                    <a
+                      href={order.payments[0].paymentScreenshotUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block max-w-[120px] rounded-lg overflow-hidden border border-[#E8E3DC] hover:opacity-90"
+                    >
+                      <img
+                        src={order.payments[0].paymentScreenshotUrl}
+                        alt="Receipt"
+                        className="w-full h-16 object-cover"
+                      />
+                    </a>
+                  </div>
+                )}
+
+                {order.payments[0].rejectionReason && (
+                  <p className="text-red-700 bg-red-50 p-2 rounded-lg border border-red-200">
+                    <strong>Rejection Reason:</strong> {order.payments[0].rejectionReason}
+                  </p>
+                )}
+
+                {order.payments[0].customerRefundUpi && (
+                  <p className="text-orange-800 bg-orange-50 p-2 rounded-lg border border-orange-200 font-mono">
+                    <strong>Refund UPI ID:</strong> {order.payments[0].customerRefundUpi}
+                  </p>
+                )}
+              </div>
             )}
+
+            <div className="pt-2">
+              <Link
+                href={`/admin/payments?search=${encodeURIComponent(order.orderNumber)}`}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#C9A84C] bg-white py-2 text-xs font-bold text-[#C9A84C] hover:bg-amber-50 transition"
+              >
+                Open in Payment Verification Panel →
+              </Link>
+            </div>
           </div>
 
           {/* Mode B: Multi-Address Deliveries and Split Invoices */}

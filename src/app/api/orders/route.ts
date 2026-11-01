@@ -170,17 +170,17 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      // 2. Create the Order
+      // 2. Create the Order in PENDING_PAYMENT state
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
           userId,
-          status: 'CONFIRMED',
+          status: 'PENDING_PAYMENT',
           subtotal: Number(subtotal),
           shippingCharge: verifiedShippingCharge,
           totalAmount: verifiedTotalAmount,
-          paymentMethod: paymentMethod || 'COD',
-          paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PAID',
+          paymentMethod: 'UPI',
+          paymentStatus: 'PENDING',
           shippingName: customerDetails.fullName,
           shippingPhone: customerDetails.phone,
           shippingAddress: `${customerDetails.addressLine1} ${customerDetails.addressLine2 || ''}`.trim(),
@@ -204,24 +204,28 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // 3. Create Tax Invoice
-      await tx.invoice.create({
+      // 3. Create Initial Payment Record
+      await tx.payment.create({
         data: {
           orderId: newOrder.id,
-          invoiceNumber,
-          businessName: 'KALAVIES Jewellery Pvt Ltd',
-          businessAddress: '108, Jewellery Palace, MG Road, Bangalore, Karnataka, 560001',
-          businessGstin: '29ABCDE1234F1Z5',
-          customerName: customerDetails.fullName,
-          customerEmail: customerDetails.email || `${cleanPhone}@customer`,
-          customerPhone: customerDetails.phone,
-          customerAddress: `${customerDetails.addressLine1}, ${customerDetails.city}, ${customerDetails.state} - ${customerDetails.pincode}`,
-          subtotal: Number(subtotal),
-          shipping: verifiedShippingCharge,
-          tax: 0,
-          total: verifiedTotalAmount,
+          amount: verifiedTotalAmount,
+          method: 'UPI',
+          status: 'PENDING',
         },
       })
+
+      // 4. Create Notification
+      await tx.notification.create({
+        data: {
+          userId,
+          title: 'Order Placed - Complete Payment',
+          message: `Order ${orderNumber} placed. Please scan the UPI QR code to complete payment and submit your transaction UTR reference.`,
+          type: 'ORDER',
+          linkUrl: `/orders/${newOrder.id}/payment`,
+        },
+      })
+
+      return newOrder
 
       return newOrder
     })

@@ -528,29 +528,46 @@ model ShipmentItem {
 }
 
 // ==========================================
-// PAYMENTS
+// PAYMENTS & MANUAL UPI QR VERIFICATION
 // ==========================================
 
-model Payment {
-  id                String   @id @default(uuid())
-  orderId           String
-  amount            Float
-  method            String   // COD, RAZORPAY, UPI
-  status            String   @default("PENDING") // PENDING, SUCCESS, FAILED, REFUNDED
-  razorpayPaymentId String?
-  razorpayOrderId   String?
-  razorpaySignature String?
-  refundId          String?
-  refundAmount      Float?
-  refundReason      String?
-  metadata          String?  // JSON
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+model PaymentSetting {
+  id                  String   @id @default(uuid())
+  qrImageUrl          String   // URL or Base64 data URL of the UPI QR Code
+  upiId               String   // e.g. "kalavies@upi"
+  payeeName           String?  // e.g. "KALAVIES Jewellery"
+  paymentInstructions String?  // e.g. "Scan QR with GPay / PhonePe / Paytm, pay exact amount, enter UTR and upload screenshot"
+  isActive            Boolean  @default(true)
+  updatedBy           String?  // Admin ID
+  updatedAt           DateTime @updatedAt
+}
 
-  order Order @relation(fields: [orderId], references: [id])
+model Payment {
+  id                   String    @id @default(uuid())
+  orderId              String
+  amount               Float
+  method               String    @default("UPI") // UPI, etc.
+  status               String    @default("PENDING") // PENDING, VERIFICATION_PENDING, PAID, REJECTED, REFUND_PENDING, REFUNDED
+  utrNumber            String?   // 12-digit UPI reference number
+  paymentScreenshotUrl String?   // URL or Base64 data URL of the payment receipt
+  rejectionReason      String?   // Reason if rejected by admin
+  verifiedBy           String?   // Admin user ID
+  verifiedAt           DateTime? // When verified
+  refundId             String?
+  refundAmount         Float?
+  refundReason         String?
+  refundUtr            String?   // Refund bank reference / UTR
+  refundedAt           DateTime?
+  customerRefundUpi    String?   // UPI ID provided by customer for refund
+  metadata             String?   // JSON
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([status])
+  @@index([utrNumber])
 }
 
 // ==========================================

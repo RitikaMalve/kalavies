@@ -76,9 +76,10 @@ export default function OrderStatusUpdater({
             onChange={(e) => setStatus(e.target.value)}
             className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3 py-2 text-sm font-medium focus:border-[#C9A84C] focus:outline-none"
           >
-            <option value="PENDING">Pending (New)</option>
+            <option value="PENDING_PAYMENT">Awaiting Payment (New)</option>
+            <option value="PAYMENT_VERIFICATION">Payment Verification</option>
             <option value="CONFIRMED">Confirmed</option>
-            <option value="PROCESSING">Processing</option>
+            <option value="PROCESSING">Processing & Packing</option>
             <option value="SHIPPED">Shipped</option>
             <option value="DELIVERED">Delivered</option>
             <option value="CANCELLED">Cancelled (Restores Stock)</option>
@@ -95,10 +96,13 @@ export default function OrderStatusUpdater({
             onChange={(e) => setPaymentStatus(e.target.value)}
             className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3 py-2 text-sm font-medium focus:border-[#C9A84C] focus:outline-none"
           >
-            <option value="PENDING">Pending</option>
-            <option value="PAID">Paid</option>
+            <option value="PENDING">Pending Payment</option>
+            <option value="VERIFICATION_PENDING">Verification Pending</option>
+            <option value="PAID">Verified & Paid</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="REFUND_PENDING">Refund Pending</option>
+            <option value="REFUNDED">Refund Completed</option>
             <option value="FAILED">Failed</option>
-            <option value="REFUNDED">Refunded</option>
           </select>
         </div>
 

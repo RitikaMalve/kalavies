@@ -19,6 +19,7 @@ import {
   UserPlus,
   Loader2,
   AlertCircle,
+  QrCode,
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
@@ -83,7 +84,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const [pincode, setPincode] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'COD'>('COD')
+  const [paymentMethod, setPaymentMethod] = useState<'UPI'>('UPI')
 
   // Account check state for non-logged-in customers
   const [checkingPhone, setCheckingPhone] = useState(false)
@@ -271,8 +272,8 @@ export default function CheckoutPage() {
       // Clear cart
       await clearCart()
 
-      // Redirect to confirmation
-      router.push(`/orders/${data.order.id}?success=true`)
+      // Redirect to UPI QR payment page
+      router.push(`/orders/${data.order.id}/payment`)
     } catch (err: any) {
       setError(err.message || 'Order processing failed')
     } finally {
@@ -541,31 +542,43 @@ export default function CheckoutPage() {
             {/* Payment Method Selector */}
             <div className="rounded-xl border border-[#E8E3DC] bg-white p-6 shadow-sm space-y-4">
               <h2 className="text-base font-bold text-[#2D2D2D] pb-3 border-b border-[#E8E3DC]">
-                2. Payment Method
+                2. Payment Method (Prepaid Only)
               </h2>
 
               <div className="space-y-3">
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-[#C9A84C] bg-amber-50/40 ring-1 ring-[#C9A84C]">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="COD"
-                    checked={true}
-                    readOnly
-                    className="mt-1 text-[#C9A84C]"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Banknote className="text-[#C9A84C]" size={20} />
-                      <span className="font-bold text-[#2D2D2D]">Cash on Delivery (COD)</span>
-                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                        Available
-                      </span>
+                <div className="p-4 rounded-xl border-2 border-[#C9A84C] bg-gradient-to-r from-amber-50/60 to-white ring-1 ring-[#C9A84C]/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-[#C9A84C] text-white flex items-center justify-center shadow-sm">
+                        <QrCode size={20} />
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#2D2D2D] text-sm block">
+                          UPI QR Code Payment
+                        </span>
+                        <span className="text-[11px] font-medium text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-0.5">
+                          ✓ Verified Prepaid Order
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-[#6B6B6B] mt-1">
-                      Pay in cash or through UPI upon receiving the parcel at your doorstep.
-                    </p>
                   </div>
+
+                  <p className="text-xs text-[#6B6B6B] leading-relaxed">
+                    Pay securely using any UPI app (<strong>Google Pay, PhonePe, Paytm, BHIM, Cred</strong>).
+                    On the next step, scan the official KALAVIES QR code, pay the exact amount, and enter your 12-digit UTR reference number to verify.
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#E8E3DC]/60 text-[11px] font-semibold text-[#6B6B6B]">
+                    <span className="rounded bg-white px-2 py-0.5 border border-[#E8E3DC]">GPay</span>
+                    <span className="rounded bg-white px-2 py-0.5 border border-[#E8E3DC]">PhonePe</span>
+                    <span className="rounded bg-white px-2 py-0.5 border border-[#E8E3DC]">Paytm</span>
+                    <span className="rounded bg-white px-2 py-0.5 border border-[#E8E3DC]">BHIM UPI</span>
+                    <span className="rounded bg-white px-2 py-0.5 border border-[#E8E3DC]">Any Bank UPI</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg border border-dashed border-[#E8E3DC] bg-[#FAF8F5] text-[11px] text-[#6B6B6B]">
+                  ℹ️ <strong>Cash on Delivery (COD) is currently disabled.</strong> All jewellery orders are insured and verified via prepaid UPI transfer for seamless safe dispatch.
                 </div>
               </div>
             </div>
@@ -625,10 +638,12 @@ export default function CheckoutPage() {
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 size={16} className="animate-spin" /> Confirming Order...
+                    <Loader2 size={16} className="animate-spin" /> Creating Order...
                   </span>
                 ) : (
-                  `Place Order • ${formatPrice(finalTotal)}`
+                  <span className="flex items-center gap-2">
+                    <QrCode size={18} /> Place Order & Pay via UPI ({formatPrice(finalTotal)})
+                  </span>
                 )}
               </button>
 

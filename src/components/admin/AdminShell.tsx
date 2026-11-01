@@ -16,6 +16,7 @@ import {
   FileText,
   BarChart3,
   Settings,
+  QrCode,
   Menu,
   X,
   Search,
@@ -40,10 +41,11 @@ interface AdminShellProps {
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { label: 'Payment Verification', href: '/admin/payments', icon: QrCode },
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree },
   { label: 'Inventory', href: '/admin/inventory', icon: Warehouse },
-  { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Discounts & Coupons', href: '/admin/discounts', icon: Percent },
   { label: 'Trending', href: '/admin/trending', icon: TrendingUp },
   { label: 'Banners', href: '/admin/banners', icon: Image },

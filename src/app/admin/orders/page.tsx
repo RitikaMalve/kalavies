@@ -81,9 +81,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               className="rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
             >
               <option value="">All Statuses</option>
-              <option value="PENDING">Pending</option>
+              <option value="PENDING_PAYMENT">Awaiting Payment</option>
+              <option value="PAYMENT_VERIFICATION">Payment Verification</option>
               <option value="CONFIRMED">Confirmed</option>
-              <option value="PROCESSING">Processing</option>
+              <option value="PROCESSING">Processing & Packing</option>
               <option value="SHIPPED">Shipped</option>
               <option value="DELIVERED">Delivered</option>
               <option value="CANCELLED">Cancelled</option>

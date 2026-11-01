@@ -117,13 +117,14 @@ export default async function CustomerAccountPage() {
                 <div key={o.id} className="p-6 hover:bg-[#FAF8F5]/50 transition space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/orders/${o.id}`}
                           className="font-bold text-base text-[#C9A84C] hover:underline"
                         >
                           {o.orderNumber}
                         </Link>
+                        <StatusBadge status={o.paymentStatus} type="payment" />
                         <StatusBadge status={o.status} type="order" />
                       </div>
                       <p className="text-xs text-[#6B6B6B] mt-0.5">
@@ -132,19 +133,29 @@ export default async function CustomerAccountPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {['PENDING_PAYMENT', 'PAYMENT_VERIFICATION'].includes(o.status) && (
+                        <Link
+                          href={`/orders/${o.id}/payment`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-[#C9A84C] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#B8963B] transition shadow-sm"
+                        >
+                          {o.status === 'PENDING_PAYMENT' ? 'Pay via UPI' : 'Payment Proof'}
+                        </Link>
+                      )}
                       <Link
                         href={`/orders/${o.id}`}
                         className="inline-flex items-center gap-1 rounded-lg border border-[#E8E3DC] bg-white px-3 py-1.5 text-xs font-semibold text-[#2D2D2D] hover:bg-gray-50 transition"
                       >
                         Track Status
                       </Link>
-                      <Link
-                        href={`/api/orders/${o.id}/invoice`}
-                        target="_blank"
-                        className="inline-flex items-center gap-1 rounded-lg border border-[#E8E3DC] bg-white px-3 py-1.5 text-xs font-semibold text-[#C9A84C] hover:bg-[#FAF8F5] transition"
-                      >
-                        <FileText size={13} /> Invoice
-                      </Link>
+                      {o.status !== 'CANCELLED' && (
+                        <Link
+                          href={`/api/orders/${o.id}/invoice`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 rounded-lg border border-[#E8E3DC] bg-white px-3 py-1.5 text-xs font-semibold text-[#C9A84C] hover:bg-[#FAF8F5] transition"
+                        >
+                          <FileText size={13} /> Invoice
+                        </Link>
+                      )}
                     </div>
                   </div>
 
