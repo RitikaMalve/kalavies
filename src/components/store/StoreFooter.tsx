@@ -58,7 +58,7 @@ export default function StoreFooter() {
           </p>
           <div className="text-xs text-white/70 space-y-1.5">
             <p className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-[#C9A84C]" /> contact@kalavies.com
+              <Mail className="w-3.5 h-3.5 text-[#C9A84C]" /> support@kalavies.com
             </p>
             <p className="flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-[#C9A84C]" /> Bangalore, Karnataka, India

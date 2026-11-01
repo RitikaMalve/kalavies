@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, ShieldCheck, Lock, Mail } from 'lucide-react'
+import { ArrowRight, Lock, Mail } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,10 +39,6 @@ export default function LoginPage() {
     }
   }
 
-  const fillAdmin = () => {
-    setEmail('admin@kalavies.com')
-    setPassword('Admin@123')
-  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -96,7 +92,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@kalavies.com"
+                  placeholder="you@example.com"
                   className="w-full rounded-lg border border-[#E8E3DC] py-2.5 pl-10 pr-4 text-sm focus:border-[#C9A84C] focus:outline-none"
                 />
                 <Mail size={16} className="absolute left-3.5 top-3 text-[#6B6B6B]" />
@@ -128,20 +124,6 @@ export default function LoginPage() {
               {loading ? 'Authenticating...' : 'Sign In'} <ArrowRight size={16} />
             </button>
           </form>
-
-          {/* Quick Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-[#E8E3DC]">
-            <p className="text-xs font-semibold text-[#6B6B6B] uppercase mb-2">
-              Quick Admin Access:
-            </p>
-            <button
-              type="button"
-              onClick={fillAdmin}
-              className="w-full rounded-lg border border-[#C9A84C] bg-amber-50/50 py-2 text-xs font-semibold text-[#C9A84C] hover:bg-amber-100/50 transition flex items-center justify-center gap-1.5"
-            >
-              <Sparkles size={14} /> Fill Admin Credentials (admin@kalavies.com)
-            </button>
-          </div>
         </div>
       </div>
     </div>
