@@ -97,19 +97,27 @@ export default function CheckoutPage() {
   const [showPassword, setShowPassword] = useState(false)
   const passwordInputRef = useRef<HTMLInputElement>(null)
 
-  // Autofill if logged in
+  // Autofill if logged in (only for regular customers, never demo admin)
   useEffect(() => {
     fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
           setCurrentUser(data.user)
-          const name = [data.user.firstName, data.user.lastName].filter(Boolean).join(' ')
-          if (name) setFullName(name)
-          if (data.user.email) setEmail(data.user.email)
-          if (data.user.phone) {
-            setPhone(data.user.phone.replace(/\D/g, '').slice(-10))
-            setAccountStatus({ checked: true, exists: true, firstName: data.user.firstName })
+          const isAdminUser =
+            data.user.role === 'ADMIN' ||
+            data.user.email?.toLowerCase().includes('admin') ||
+            (data.user.firstName?.toLowerCase() === 'admin' && data.user.lastName?.toLowerCase() === 'kalavies')
+
+          // Only autofill customer shipping details if not an admin account
+          if (!isAdminUser) {
+            const name = [data.user.firstName, data.user.lastName].filter(Boolean).join(' ')
+            if (name) setFullName(name)
+            if (data.user.email) setEmail(data.user.email)
+            if (data.user.phone) {
+              setPhone(data.user.phone.replace(/\D/g, '').slice(-10))
+              setAccountStatus({ checked: true, exists: true, firstName: data.user.firstName })
+            }
           }
         }
       })
@@ -340,7 +348,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Priya Sharma"
+                    placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -365,7 +373,7 @@ export default function CheckoutPage() {
                     <input
                       type="tel"
                       required
-                      placeholder="9876543210"
+                      placeholder="10-digit mobile number"
                       value={phone}
                       onChange={handlePhoneChange}
                       onBlur={() => phone.length === 10 && checkPhoneNumber(phone)}
@@ -453,7 +461,7 @@ export default function CheckoutPage() {
                 <input
                   type="email"
                   required
-                  placeholder="e.g. yourname@example.com"
+                  placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -495,7 +503,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Mumbai, Delhi, Nagpur"
+                    placeholder="e.g. Nagpur, Mumbai, Pune"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -510,7 +518,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     list="indian-states-list"
-                    placeholder="e.g. Maharashtra, Karnataka"
+                    placeholder="e.g. Maharashtra"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full rounded-lg border border-[#E8E3DC] bg-white px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
@@ -530,7 +538,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="e.g. 400001"
+                    placeholder="e.g. 440001"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                     className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none font-mono"

@@ -69,7 +69,7 @@ export default function MultiAddressSplitManager({
       recipientPhone: '',
       addressLine1: '',
       city: '',
-      state: 'Karnataka',
+      state: 'Maharashtra',
       pincode: '',
       label: 'Destination 1',
       courierName: 'Blue Dart Express',

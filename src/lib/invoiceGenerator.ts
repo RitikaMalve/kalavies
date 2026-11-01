@@ -49,9 +49,9 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.fillColor('#C9A84C').fontSize(22).font('Helvetica-Bold').text('KALAVIES', { align: 'left' })
       doc.fillColor('#6B6B6B').fontSize(9).font('Helvetica').text('FINE TRADITIONAL JEWELLERY')
       doc.moveDown(0.3)
-      doc.fillColor('#4B5563').fontSize(9).font('Helvetica').text(data.businessName || 'KALAVIES Jewellery Pvt Ltd')
-      doc.text(data.businessAddress || '108, Jewellery Palace, MG Road, Bangalore, Karnataka, 560001')
-      doc.text(`GSTIN: ${data.businessGstin || '29ABCDE1234F1Z5'}`)
+      doc.fillColor('#4B5563').fontSize(9).font('Helvetica').text(data.businessName || 'KALAVIES Jewellery')
+      doc.text(data.businessAddress || 'KALAVIES Studio, Civil Lines, Nagpur, Maharashtra, 440001')
+      doc.text(`GSTIN: ${data.businessGstin || '27ABCDE1234F1Z5'}`)
 
       // Invoice Title & Info on Right
       doc.fontSize(16).fillColor('#1A1A1A').font('Helvetica-Bold').text('TAX INVOICE', 350, 45, { align: 'right' })
@@ -84,7 +84,7 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.fontSize(9).font('Helvetica').fillColor('#374151')
       doc.text(`Shipping Mode: Standard Express Delivery`, 350, 180)
       doc.text(`Tracking: ${data.trackingNumber || 'Generated upon dispatch'}`, 350, 195)
-      doc.text(`Place of Supply: Karnataka (State Code 29)`, 350, 210)
+      doc.text(`Place of Supply: Maharashtra (State Code 27)`, 350, 210)
 
       // Table Header
       const tableTop = 260
@@ -218,7 +218,7 @@ export function generateInvoiceHtml(data: InvoiceData, includePageBreak: boolean
           <p style="font-size: 12px; color: #4B5563; margin: 0; line-height: 1.5;">
             <strong>Shipping Mode:</strong> Standard Insured Express<br>
             <strong>Tracking No:</strong> ${data.trackingNumber || 'Available upon dispatch'}<br>
-            <strong>Place of Supply:</strong> Karnataka (State Code 29)
+            <strong>Place of Supply:</strong> Maharashtra (State Code 27)
           </p>
         </div>
       </div>
