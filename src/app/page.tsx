@@ -6,6 +6,15 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } fro
 
 export const dynamic = 'force-dynamic'
 
+const CATEGORY_REAL_IMAGES: Record<string, string> = {
+  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg',
+  'earrings': '/images/categories/earrings.jpg',
+  'nose-pins': '/images/categories/nose-pins.jpg',
+  'necklaces': '/images/categories/necklaces.jpg',
+  'bangles': '/images/categories/bangles.jpg',
+  'rings': '/images/categories/rings.jpg',
+}
+
 function resolveLink(url?: string | null): string {
   if (!url || !url.trim()) return '/products'
   const clean = url.trim()
@@ -155,42 +164,40 @@ export default async function HomePage() {
           {(categories.length === 1 && categories[0].children?.length > 0
             ? [categories[0], ...categories[0].children]
             : categories
-          ).map((cat: any) => (
-            <Link
-              key={cat.id}
-              href={`/products?category=${cat.slug}`}
-              className="group relative rounded-2xl border border-[#E8E3DC] bg-white p-5 text-center shadow-sm hover:shadow-md hover:border-[#C9A84C] transition flex flex-col items-center justify-between"
-            >
-              <div className="h-24 w-24 rounded-2xl overflow-hidden border border-[#C9A84C]/30 bg-[#FAF8F5] mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-sm flex items-center justify-center">
-                {cat.image ? (
+          ).map((cat: any) => {
+            const catImage = CATEGORY_REAL_IMAGES[cat.slug] || cat.image || '/images/categories/oxidised-jewellery.jpg'
+            return (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="group relative rounded-2xl border border-[#E8E3DC] bg-white p-4 text-center shadow-sm hover:shadow-lg hover:border-[#C9A84C] transition-all duration-300 flex flex-col items-center justify-between"
+              >
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-[#C9A84C]/25 bg-[#FAF8F5] mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-sm flex items-center justify-center relative">
                   <img
-                    src={cat.image}
+                    src={catImage}
                     alt={cat.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
                   />
-                ) : (
-                  <div className="h-full w-full bg-amber-50 flex items-center justify-center">
-                    <Sparkles size={28} className="text-[#C9A84C]" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition line-clamp-1">
-                  {cat.name}
-                </h3>
-                <p className="text-[11px] text-[#6B6B6B] mt-0.5">
-                  {cat.children?.length > 0
-                    ? `${cat.children.length} styles`
-                    : cat._count?.products !== undefined
-                    ? `${cat._count.products} items`
-                    : 'Curated'}
-                </p>
-              </div>
-              <span className="mt-3 inline-flex items-center text-[10px] font-semibold text-[#C9A84C]">
-                Explore <ChevronRight size={12} />
-              </span>
-            </Link>
-          ))}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition line-clamp-1">
+                    {cat.name}
+                  </h3>
+                  <p className="text-[11px] text-[#6B6B6B] mt-0.5">
+                    {cat.children?.length > 0
+                      ? `${cat.children.length} styles`
+                      : cat._count?.products !== undefined
+                      ? `${cat._count.products} items`
+                      : 'Curated'}
+                  </p>
+                </div>
+                <span className="mt-3 inline-flex items-center text-[11px] font-semibold text-[#C9A84C] group-hover:translate-x-0.5 transition-transform">
+                  Explore <ChevronRight size={12} className="ml-0.5" />
+                </span>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
