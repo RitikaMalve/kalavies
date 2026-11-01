@@ -90,54 +90,31 @@ export default async function HomePage() {
 
   return (
     <StoreLayout>
-      {/* Hero Banner Section */}
-      <section className="relative bg-[#1A1A1A] text-white overflow-hidden shadow-2xl">
-        {/* Full-visibility background banner with rich dark gradient overlay */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroBanner.imageUrl}
-            alt={heroBanner.title || "KALAVIES Hero Banner"}
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/60" />
-          <div className="absolute inset-0 bg-radial from-transparent via-black/30 to-black/75" />
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20 sm:py-28 lg:py-36 flex flex-col items-center text-center">
-          {heroBanner.subtitle && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/80 bg-black/60 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#E0CB82] backdrop-blur-md mb-6 shadow-lg shadow-black/50">
-              <Sparkles size={14} className="text-[#C9A84C]" />
-              {heroBanner.subtitle}
-            </div>
-          )}
-
-          <h1
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)]"
-            style={{ fontFamily: 'Playfair Display, serif' }}
-          >
-            {heroBanner.title}
-          </h1>
-
-          <p className="mt-6 text-base sm:text-lg text-white/95 max-w-2xl leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            {heroBanner.description ||
-              'Authentic oxidised silver, Kundan bridal motifs, and contemporary daily essentials designed for the modern Indian connoisseur.'}
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4 justify-center">
-            <Link
-              href={resolveLink(heroBanner.linkUrl)}
-              className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-black/60 hover:bg-[#B8963B] transition transform hover:-translate-y-0.5 border border-[#E0CB82]/50"
-            >
-              {heroBanner.buttonText || 'Shop Now'} <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/products?category=oxidised-jewellery"
-              className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-white/10 px-8 py-3.5 text-sm font-semibold text-white backdrop-blur-md hover:bg-[#C9A84C] hover:text-white transition shadow-lg"
-            >
-              Oxidised Collection
-            </Link>
+      {/* Hero Banner Section - Clean, High-End Banner without Dark Overlay (Inspiration Style) */}
+      <section className="relative w-full overflow-hidden bg-[#FAF8F5] border-b border-[#E8E3DC]">
+        <Link
+          href={resolveLink(heroBanner.linkUrl)}
+          className="group relative block w-full overflow-hidden"
+        >
+          {/* Crisp, 100% Visible Banner Graphic */}
+          <div className="relative w-full">
+            <img
+              src={heroBanner.imageUrl}
+              alt={heroBanner.title || 'KALAVIES Jewellery Banner'}
+              className="w-full h-auto max-h-[580px] object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+            />
           </div>
-        </div>
+
+          {/* Floating Pill Capsule Button (Bottom-Right, Inspiration Style) */}
+          <div className="absolute bottom-4 right-4 sm:bottom-8 sm:right-10 md:bottom-12 md:right-14 z-10">
+            <div className="inline-flex items-center gap-2.5 sm:gap-3 rounded-full bg-white/95 hover:bg-white border border-[#C9A84C]/50 py-2 sm:py-2.5 pl-4 sm:pl-6 pr-2 sm:pr-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#1A1A1A] shadow-xl shadow-black/10 backdrop-blur-md transition-all group-hover:shadow-2xl group-hover:border-[#C9A84C] group-hover:scale-105">
+              <span>{heroBanner.buttonText || 'Explore Collection'}</span>
+              <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center shrink-0 group-hover:bg-[#B8963B] transition-colors shadow-sm">
+                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+          </div>
+        </Link>
       </section>
 
       {/* Coupon Strip */}
