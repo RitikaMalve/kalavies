@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { Plus, Search, Edit, Trash2, ArrowUpDown, Filter, Eye } from 'lucide-react'
+import { Plus, Search, Edit, ArrowUpDown, Filter, Eye } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import ProductDeleteButton from '@/components/admin/ProductDeleteButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,12 @@ export default async function AdminProductsPage({ searchParams }: Props) {
     where.categoryId = categoryId
   }
   if (status) {
-    where.status = status
+    if (status !== 'ALL') {
+      where.status = status
+    }
+  } else {
+    // By default, exclude archived / deleted products from active listings
+    where.status = { not: 'ARCHIVED' }
   }
 
   const [products, totalCount, categories] = await Promise.all([
@@ -117,10 +123,11 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               defaultValue={status}
               className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
             >
-              <option value="">All Statuses</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="DRAFT">Draft</option>
-              <option value="ARCHIVED">Archived</option>
+              <option value="">Active (Published & Draft)</option>
+              <option value="ALL">All Products (Inc. Archived)</option>
+              <option value="PUBLISHED">Published Only</option>
+              <option value="DRAFT">Draft Only</option>
+              <option value="ARCHIVED">Archived / Deleted</option>
             </select>
             <button
               type="submit"
@@ -268,6 +275,12 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                           >
                             <Edit size={16} />
                           </Link>
+                          <ProductDeleteButton
+                            productId={p.id}
+                            productName={p.name}
+                            productSku={p.sku}
+                            productImage={p.images[0]?.url}
+                          />
                         </div>
                       </td>
                     </tr>

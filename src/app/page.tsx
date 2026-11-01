@@ -137,9 +137,7 @@ export default async function HomePage() {
   const displayCategories =
     categories.length === 0
       ? fallbackCategories
-      : categories.length === 1 && categories[0].children?.length > 0
-      ? [categories[0], ...categories[0].children]
-      : categories
+      : categories.flatMap((c) => (c.children && c.children.length > 0 ? [c, ...c.children] : [c]))
 
   return (
     <StoreLayout>

@@ -36,13 +36,22 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
   const bannerList: BannerItem[] = banners.length > 0 ? banners : [
     {
+      id: 'default-hero-gold',
+      title: 'The Gold & Champagne Collection',
+      subtitle: 'TIMELESS FILIGREE & MODERN BRILLIANCE',
+      description: 'Featuring handcrafted filigree gold kadas, delicate gemstone stacking rings, luminous earrings, and 14k thin bracelets.',
+      imageUrl: '/images/banners/hero-gold-jewellery.jpg?v=20261101b',
+      buttonText: 'Shop Now',
+      linkUrl: '/products',
+    },
+    {
       id: 'default-hero-1',
       title: 'Royal Heritage Collection',
       subtitle: 'AUTHENTIC 925 OXIDISED SILVER ARTISTRY',
       description: 'Handcrafted silver choker, earrings and tribal temple pieces with regal antique polish.',
       imageUrl: '/images/banners/hero-jewellery-1.jpg?v=20261101',
       buttonText: 'Explore Collection',
-      linkUrl: '/products',
+      linkUrl: '/products?category=oxidised-jewellery',
     },
     {
       id: 'default-hero-2',
@@ -63,7 +72,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
     timerRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % total)
-    }, 6000)
+    }, 6500)
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
@@ -103,9 +112,10 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
   const currentBanner = bannerList[currentIndex]
 
   return (
-    <section className="relative w-full bg-[#0E0E10] overflow-hidden">
+    <section className="relative w-full overflow-hidden bg-[#120E0C]">
+      {/* 100% Full-Width Edge-to-Edge Container without Side Margins */}
       <div
-        className="group relative w-full overflow-hidden transition-all aspect-[16/10] sm:aspect-[21/9] md:aspect-[24/9] min-h-[320px] sm:min-h-[440px] md:min-h-[500px] max-h-[640px]"
+        className="group relative w-full h-[460px] sm:h-[540px] md:h-[620px] lg:h-[680px] xl:h-[720px] overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -113,7 +123,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
           href={resolveLink(currentBanner.linkUrl)}
           className="block relative w-full h-full overflow-hidden focus:outline-none"
         >
-          {/* Background Jewellery Product Photography (Full-bleed Edge-to-Edge) */}
+          {/* Background Jewellery Product Photography stretching 100% */}
           <div className="absolute inset-0 w-full h-full">
             <picture>
               {currentBanner.mobileImageUrl && (
@@ -125,22 +135,22 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               <img
                 src={currentBanner.imageUrl}
                 alt={currentBanner.title || 'KALAVIES Jewellery Banner'}
-                className="w-full h-full object-cover object-center sm:object-right md:object-center transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
+                className="w-full h-full object-cover object-right md:object-center transition-transform duration-1000 ease-out group-hover:scale-[1.01]"
                 loading="eager"
                 fetchPriority="high"
               />
             </picture>
 
-            {/* Luxury Gradient Vignette to ensure crisp typography on the left while jewellery shines on right */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20 sm:from-black/90 sm:via-black/45 sm:to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20 sm:hidden" />
+            {/* Seamless Left Vignette to ensure crystal-clear text readability on all screens */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent sm:from-black/85 sm:via-black/40 sm:to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 sm:hidden pointer-events-none" />
           </div>
 
-          {/* Editorial Content Showcase on Left (Container max-w-7xl aligns with page layout) */}
-          <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-5 sm:px-12 md:px-16 lg:px-20 flex flex-col justify-end sm:justify-center pb-8 sm:pb-0">
+          {/* Editorial Content Showcase Constrained to Site Grid */}
+          <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 flex flex-col justify-end sm:justify-center pb-12 sm:pb-0 pointer-events-none">
             <div className="max-w-xl">
               {currentBanner.subtitle && (
-                <div className="inline-flex items-center gap-1.5 text-[#C9A84C] text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] uppercase mb-1.5 sm:mb-3">
+                <div className="inline-flex items-center gap-1.5 text-[#C9A84C] text-[10px] sm:text-xs font-semibold tracking-[0.25em] uppercase mb-2 sm:mb-3 drop-shadow">
                   <Sparkles size={13} className="text-[#C9A84C] shrink-0" />
                   <span>{currentBanner.subtitle}</span>
                 </div>
@@ -148,7 +158,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
               {currentBanner.title && (
                 <h1
-                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight mb-2 sm:mb-4 drop-shadow-md"
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight mb-2 sm:mb-4 drop-shadow-lg"
                   style={{ fontFamily: 'Playfair Display, Georgia, serif' }}
                 >
                   {currentBanner.title}
@@ -156,17 +166,17 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               )}
 
               {currentBanner.description && (
-                <p className="text-xs sm:text-sm md:text-base text-stone-300 font-light leading-relaxed mb-4 sm:mb-6 line-clamp-2 max-w-md">
+                <p className="text-xs sm:text-sm md:text-base text-stone-200 font-light leading-relaxed mb-5 sm:mb-7 line-clamp-2 sm:line-clamp-3 max-w-md drop-shadow">
                   {currentBanner.description}
                 </p>
               )}
 
-              {/* Capsule Action Button (Titan / Luxury Brand style) */}
-              <div className="pt-1">
-                <span className="inline-flex items-center gap-2.5 rounded-full bg-white text-[#1A1A1A] hover:bg-[#FAF8F5] border border-white/60 py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm font-bold tracking-wide shadow-xl backdrop-blur-sm transition-all group-hover:scale-105 group-hover:shadow-2xl">
-                  <span>{currentBanner.buttonText || 'Explore Collection'}</span>
+              {/* Shop Now Capsule Button */}
+              <div className="pt-1 pointer-events-auto">
+                <span className="inline-flex items-center gap-3 rounded-full bg-white text-[#1A1A1A] hover:bg-[#FAF8F5] border border-white/70 py-2.5 sm:py-3 px-5 sm:px-7 text-xs sm:text-sm font-bold tracking-wider shadow-2xl backdrop-blur-md transition-all group-hover:scale-105 group-hover:shadow-2xl">
+                  <span>{currentBanner.buttonText || 'Shop Now'}</span>
                   <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C9A84C] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <ArrowRight size={12} />
+                    <ArrowRight size={13} />
                   </span>
                 </span>
               </div>
@@ -174,14 +184,14 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
           </div>
         </Link>
 
-        {/* Prominent Always-Visible Circular Controls (< and >) Matching User's Inspiration */}
+        {/* Circular Left / Right Arrow Controls Matching User's Inspiration */}
         {total > 1 && (
           <>
             <button
               type="button"
               onClick={goToPrev}
               aria-label="Previous Slide"
-              className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
+              className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
             </button>
@@ -189,13 +199,13 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               type="button"
               onClick={goToNext}
               aria-label="Next Slide"
-              className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
+              className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
             >
               <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
             </button>
 
             {/* Slide Dots Indicator */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 z-20">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
               {bannerList.map((_, i) => (
                 <button
                   key={i}
@@ -205,10 +215,10 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
                     setCurrentIndex(i)
                   }}
                   aria-label={`Go to slide ${i + 1}`}
-                  className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === currentIndex
-                      ? 'w-6 sm:w-8 bg-[#C9A84C] shadow-md'
-                      : 'w-1.5 sm:w-2 bg-white/50 hover:bg-white/90'
+                      ? 'w-8 bg-[#C9A84C] shadow-lg'
+                      : 'w-2 bg-white/60 hover:bg-white'
                   }`}
                 />
               ))}

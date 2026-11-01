@@ -192,9 +192,25 @@ export default function CategoriesManager({
   }
 
   const handleDelete = async (cat: Category) => {
+    // Prevent accidental deletion of parent categories containing subcategories
+    if (cat.children && cat.children.length > 0) {
+      alert(
+        `Cannot delete parent category "${cat.name}": It contains ${cat.children.length} active subcategories.\n\nPlease delete or reassign its subcategories before removing this parent category.`
+      )
+      return
+    }
+
+    // Prevent accidental deletion of categories containing linked products
+    if (cat._count && cat._count.products > 0) {
+      alert(
+        `Cannot delete category "${cat.name}": It has ${cat._count.products} linked products.\n\nPlease reassign these products to another category before deleting.`
+      )
+      return
+    }
+
     if (
       !confirm(
-        `Are you sure you want to delete "${cat.name}"? Products attached should be reassigned.`
+        `Are you sure you want to delete category "${cat.name}"? This action cannot be undone.`
       )
     )
       return
@@ -215,17 +231,17 @@ export default function CategoriesManager({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#2D2D2D]">
-            Categories & Subcategories
+            Categories & Subcategories Management
           </h1>
           <p className="text-sm text-[#6B6B6B]">
-            Manage catalogue hierarchy, showcase images for "Curated Jewellery Universes", and URLs.
+            Create parent categories and subcategories, upload showcase images, and manage display order.
           </p>
         </div>
         <button
           onClick={() => openCreateModal()}
           className="inline-flex items-center gap-2 rounded-lg bg-[#C9A84C] px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-[#B8963B] transition cursor-pointer"
         >
-          <Plus size={18} /> Add Root Category
+          <Plus size={18} /> Add Category
         </button>
       </div>
 
@@ -292,19 +308,20 @@ export default function CategoriesManager({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className="text-xs text-[#6B6B6B] hidden sm:inline">
                       {hasChildren ? `${parent.children?.length} subcategories` : 'No subcategories'}
                     </span>
 
+                    <button
+                      onClick={() => openCreateModal(parent.id)}
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200/80 px-2.5 py-1 text-xs font-semibold text-[#8C6D1F] hover:bg-amber-100 transition cursor-pointer"
+                      title="Add Subcategory under this Parent"
+                    >
+                      <Plus size={14} /> Add Subcategory
+                    </button>
+
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => openCreateModal(parent.id)}
-                        className="rounded p-1.5 text-[#6B6B6B] hover:text-[#C9A84C] hover:bg-amber-50 transition cursor-pointer"
-                        title="Add Subcategory"
-                      >
-                        <Plus size={16} />
-                      </button>
                       <button
                         onClick={() => openEditModal(parent)}
                         className="rounded p-1.5 text-[#6B6B6B] hover:text-[#C9A84C] hover:bg-amber-50 transition cursor-pointer"
@@ -507,40 +524,59 @@ export default function CategoriesManager({
                   onChange={(e) => setParentId(e.target.value)}
                   className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
                 >
-                  <option value="">None (Top-Level Category)</option>
+                  <option value="">None (Top-Level Parent Category)</option>
                   {parentCategories
                     .filter((c) => c.id !== editingCategory?.id)
                     .map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name}
+                        📁 {c.name} (Parent Category)
                       </option>
                     ))}
                 </select>
+                <p className="mt-1 text-[11px] text-[#8C827A]">
+                  Select a parent category to create a subcategory (e.g. Earrings under Jewellery), or choose "None" for a top-level parent.
+                </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
-                  Sort Order
+                  Description (Optional)
                 </label>
-                <input
-                  type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(Number(e.target.value))}
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  placeholder="Optional brief description of this category (e.g. Elegant gold and oxidised jewellery pieces)..."
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="cat-active"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="rounded text-[#C9A84C] focus:ring-[#C9A84C]"
-                />
-                <label htmlFor="cat-active" className="text-sm font-medium text-[#2D2D2D] cursor-pointer">
-                  Active in Storefront
-                </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={isActive ? 'true' : 'false'}
+                    onChange={(e) => setIsActive(e.target.value === 'true')}
+                    className="w-full rounded-lg border border-[#E8E3DC] bg-[#FAF8F5] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  >
+                    <option value="true">Active (Visible)</option>
+                    <option value="false">Inactive (Hidden)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6B6B6B] mb-1">
+                    Sort Order
+                  </label>
+                  <input
+                    type="number"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(Number(e.target.value))}
+                    className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t border-[#E8E3DC]">

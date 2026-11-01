@@ -128,13 +128,50 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   const { id } = await params
   try {
-    // Soft delete product by marking ARCHIVED
-    await prisma.product.update({
+    const product = await prisma.product.findUnique({
       where: { id },
-      data: { status: 'ARCHIVED' },
+      include: {
+        _count: {
+          select: { orderItems: true },
+        },
+      },
     })
-    return NextResponse.json({ success: true, message: 'Product archived' })
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+
+    if (product._count.orderItems > 0) {
+      // Product has existing order history: preserve order records via soft delete / archive
+      await prisma.product.update({
+        where: { id },
+        data: { status: 'ARCHIVED' },
+      })
+      return NextResponse.json({
+        success: true,
+        message: `Product "${product.name}" is associated with existing customer orders and has been safely archived (soft deleted) to protect order history.`,
+        softDeleted: true,
+      })
+    } else {
+      // No order history: safe to fully delete product and related dependencies
+      await prisma.$transaction([
+        prisma.productImage.deleteMany({ where: { productId: id } }),
+        prisma.productVariant.deleteMany({ where: { productId: id } }),
+        prisma.cartItem.deleteMany({ where: { productId: id } }),
+        prisma.wishlistItem.deleteMany({ where: { productId: id } }),
+        prisma.review.deleteMany({ where: { productId: id } }),
+        prisma.stockMovement.deleteMany({ where: { productId: id } }),
+        prisma.trendingProduct.deleteMany({ where: { productId: id } }),
+        prisma.discountRule.deleteMany({ where: { targetId: id } }),
+        prisma.product.delete({ where: { id } }),
+      ])
+      return NextResponse.json({
+        success: true,
+        message: `Product "${product.name}" deleted successfully.`,
+        softDeleted: false,
+      })
+    }
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: err.message || 'Failed to delete product' }, { status: 500 })
   }
 }
