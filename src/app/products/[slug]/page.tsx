@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const ogImage = product.images?.[0]?.url || '/logo-circle.png'
     const desc = product.metaDescription || (product.description
       ? product.description.slice(0, 155)
-      : `Buy ${product.name} ${product.category?.name || 'jewellery'} online at ₹${price}. Premium finish, authentic design & Cash on Delivery across India.`)
+      : `Buy ${product.name} ${product.category?.name || 'jewellery'} online at ₹${price}. Premium finish, authentic design & insured delivery across India.`)
 
     return {
       title: product.seoTitle || `${product.name} - ${product.category?.name || 'Jewellery'}`,

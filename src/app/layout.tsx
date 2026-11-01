@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: "KALAVIES Jewellery",
     title: "KALAVIES Jewellery | Premium Oxidised & Traditional Jewellery Online",
     description:
-      "Shop authentic oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India. Cash on delivery & free shipping above ₹699.",
+      "Shop authentic oxidised jewellery, earrings, necklaces, bangles & traditional sets online in India. Secure UPI payment & free shipping above ₹699.",
     images: [
       {
         url: "/logo-circle.png",

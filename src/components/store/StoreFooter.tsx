@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Mail, MapPin, ShieldCheck, RefreshCw, Award, Truck } from 'lucide-react'
+import { Mail, MapPin, ShieldCheck, RefreshCw, Sparkles, Truck } from 'lucide-react'
 
 export default function StoreFooter() {
   return (
@@ -8,24 +8,24 @@ export default function StoreFooter() {
       <div className="border-b border-white/10 bg-[#222222] py-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
-            <Award className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold text-[#C9A84C] tracking-wide">100% Certified Purity</h4>
-            <p className="text-xs text-white/75">Authentic oxidised silver & premium quality finish</p>
+            <Sparkles className="w-6 h-6 text-[#C9A84C]" />
+            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>100% Authentic Jewellery</h4>
+            <p className="text-xs text-stone-300">Handcrafted oxidised silver & artisanal finish</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <Truck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold text-[#C9A84C] tracking-wide">Free Express Shipping</h4>
-            <p className="text-xs text-white/75">On all prepaid & COD orders above ₹699</p>
+            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Free Express Shipping</h4>
+            <p className="text-xs text-stone-300">On all prepaid orders above ₹699</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <RefreshCw className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold text-[#C9A84C] tracking-wide">7-Day Easy Returns</h4>
-            <p className="text-xs text-white/75">Hassle-free replacement guarantee</p>
+            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>7-Day Easy Returns</h4>
+            <p className="text-xs text-stone-300">Hassle-free replacement guarantee</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
             <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold text-[#C9A84C] tracking-wide">Secure Checkout</h4>
-            <p className="text-xs text-white/75">Cash on Delivery (COD) at your doorstep</p>
+            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Secure UPI Checkout</h4>
+            <p className="text-xs text-stone-300">100% Safe, encrypted & bank-verified prepaid orders</p>
           </div>
         </div>
       </div>

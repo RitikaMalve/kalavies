@@ -34,7 +34,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       if (category) {
         return {
           title: `Buy ${category.name} Online | KALAVIES India`,
-          description: `Shop authentic curated ${category.name} online at best prices. Premium oxidised silver designs, Cash on Delivery & free shipping above ₹699.`,
+          description: `Shop authentic curated ${category.name} online at best prices. Premium oxidised silver designs, secure UPI payment & free shipping above ₹699.`,
           alternates: {
             canonical: `/products?category=${categorySlug}`,
           },
@@ -57,7 +57,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: 'All Jewellery Collections | KALAVIES India',
     description:
-      'Explore authentic oxidised earrings, jhumkas, necklaces, chokers, bangles, and bridal jewellery sets. Free shipping above ₹699 & Cash on Delivery.',
+      'Explore authentic oxidised earrings, jhumkas, necklaces, chokers, bangles, and bridal jewellery sets. Free shipping above ₹699 with fast nationwide delivery.',
     alternates: {
       canonical: '/products',
     },

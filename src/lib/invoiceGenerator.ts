@@ -145,7 +145,7 @@ export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffe
       doc.strokeColor('#E5E7EB').lineWidth(1).moveTo(45, footerY).lineTo(550, footerY).stroke()
       doc.fontSize(7.5).fillColor('#6B6B6B').font('Helvetica')
       doc.text(
-        'Terms & Conditions: 1. All jewellery products are certified for quality and premium finish. 2. Please store in airtight pouches away from water and perfume. 3. This is a computer generated invoice and does not require a physical signature.',
+        'Terms & Conditions: 1. All jewellery products are handcrafted for premium quality and finish. 2. Please store in airtight pouches away from water and perfume. 3. This is a computer generated invoice and does not require a physical signature.',
         45,
         footerY + 10,
         { width: 505, align: 'center' }

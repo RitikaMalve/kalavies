@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Award, AlertTriangle, AlertCircle, Loader2 } from 'lucide-react'
+import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Sparkles, AlertTriangle, AlertCircle, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -398,7 +398,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         {/* Highlights & Guarantees */}
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-[#6B6B6B] pt-2">
           <div className="p-2 border border-[#E8E3DC] rounded-lg bg-white">
-            <Award className="w-5 h-5 text-[#C9A84C] mx-auto mb-1" />
+            <Sparkles className="w-5 h-5 text-[#C9A84C] mx-auto mb-1" />
             <span className="font-semibold block text-[#2D2D2D]">100% Authentic</span>
           </div>
           <div className="p-2 border border-[#E8E3DC] rounded-lg bg-white">
@@ -407,7 +407,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
           <div className="p-2 border border-[#E8E3DC] rounded-lg bg-white">
             <ShieldCheck className="w-5 h-5 text-[#C9A84C] mx-auto mb-1" />
-            <span className="font-semibold block text-[#2D2D2D]">COD Available</span>
+            <span className="font-semibold block text-[#2D2D2D]">Secure UPI</span>
           </div>
         </div>
 
