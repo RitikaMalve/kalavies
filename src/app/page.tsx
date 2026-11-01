@@ -7,12 +7,12 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } fro
 export const dynamic = 'force-dynamic'
 
 const CATEGORY_REAL_IMAGES: Record<string, string> = {
-  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg',
-  'earrings': '/images/categories/earrings.jpg',
-  'nose-pins': '/images/categories/nose-pins.jpg',
-  'necklaces': '/images/categories/necklaces.jpg',
-  'bangles': '/images/categories/bangles.jpg',
-  'rings': '/images/categories/rings.jpg',
+  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg?v=20261101',
+  'earrings': '/images/categories/earrings.jpg?v=20261101',
+  'nose-pins': '/images/categories/nose-pins.jpg?v=20261101',
+  'necklaces': '/images/categories/necklaces.jpg?v=20261101',
+  'bangles': '/images/categories/bangles.jpg?v=20261101',
+  'rings': '/images/categories/rings.jpg?v=20261101',
 }
 
 function resolveLink(url?: string | null): string {
@@ -93,42 +93,42 @@ export default async function HomePage() {
       id: 'cat-oxidised',
       name: 'Oxidised Jewellery',
       slug: 'oxidised-jewellery',
-      image: '/images/categories/oxidised-jewellery.jpg',
+      image: '/images/categories/oxidised-jewellery.jpg?v=20261101',
       _count: { products: 12 },
     },
     {
       id: 'cat-earrings',
       name: 'Earrings',
       slug: 'earrings',
-      image: '/images/categories/earrings.jpg',
+      image: '/images/categories/earrings.jpg?v=20261101',
       _count: { products: 24 },
     },
     {
       id: 'cat-nose-pins',
       name: 'Nose Pins',
       slug: 'nose-pins',
-      image: '/images/categories/nose-pins.jpg',
+      image: '/images/categories/nose-pins.jpg?v=20261101',
       _count: { products: 8 },
     },
     {
       id: 'cat-necklaces',
       name: 'Necklaces',
       slug: 'necklaces',
-      image: '/images/categories/necklaces.jpg',
+      image: '/images/categories/necklaces.jpg?v=20261101',
       _count: { products: 15 },
     },
     {
       id: 'cat-bangles',
       name: 'Bangles',
       slug: 'bangles',
-      image: '/images/categories/bangles.jpg',
+      image: '/images/categories/bangles.jpg?v=20261101',
       _count: { products: 10 },
     },
     {
       id: 'cat-rings',
       name: 'Rings',
       slug: 'rings',
-      image: '/images/categories/rings.jpg',
+      image: '/images/categories/rings.jpg?v=20261101',
       _count: { products: 14 },
     },
   ]
@@ -221,12 +221,14 @@ export default async function HomePage() {
                 href={`/products?category=${cat.slug}`}
                 className="group relative rounded-2xl border border-[#E8E3DC] bg-white p-4 text-center shadow-sm hover:shadow-lg hover:border-[#C9A84C] transition-all duration-300 flex flex-col items-center justify-between"
               >
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-[#C9A84C]/25 bg-[#FAF8F5] mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-sm flex items-center justify-center relative">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl overflow-hidden border border-[#C9A84C]/25 bg-[#FAF8F5] mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-sm flex items-center justify-center relative">
                   <img
                     src={catImage}
                     alt={cat.name}
+                    width={112}
+                    height={112}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="lazy"
+                    loading="eager"
                   />
                 </div>
                 <div>

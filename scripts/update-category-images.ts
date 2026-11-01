@@ -3,12 +3,12 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const CATEGORY_IMAGE_MAPPING: Record<string, string> = {
-  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg',
-  'earrings': '/images/categories/earrings.jpg',
-  'nose-pins': '/images/categories/nose-pins.jpg',
-  'necklaces': '/images/categories/necklaces.jpg',
-  'bangles': '/images/categories/bangles.jpg',
-  'rings': '/images/categories/rings.jpg',
+  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg?v=20261101',
+  'earrings': '/images/categories/earrings.jpg?v=20261101',
+  'nose-pins': '/images/categories/nose-pins.jpg?v=20261101',
+  'necklaces': '/images/categories/necklaces.jpg?v=20261101',
+  'bangles': '/images/categories/bangles.jpg?v=20261101',
+  'rings': '/images/categories/rings.jpg?v=20261101',
 }
 
 async function updateCategoryImages() {
