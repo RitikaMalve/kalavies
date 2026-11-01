@@ -38,9 +38,9 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
     {
       id: 'default-hero-gold',
       title: 'The Gold & Champagne Collection',
-      subtitle: 'TIMELESS FILIGREE & MODERN BRILLIANCE',
-      description: 'Featuring handcrafted filigree gold kadas, delicate gemstone stacking rings, luminous earrings, and 14k thin bracelets.',
-      imageUrl: '/images/banners/hero-gold-jewellery.jpg?v=20261101b',
+      subtitle: 'CONTEMPORARY GOLD & TIMELESS ALLURE',
+      description: 'Sculptural gold wave cuffs, luminous dome earrings, and minimalist everyday brilliance.',
+      imageUrl: '/images/banners/hero-gold-jewellery.jpg?v=20261101c',
       buttonText: 'Shop Now',
       linkUrl: '/products',
     },
