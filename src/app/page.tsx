@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductCard from '@/components/store/ProductCard'
+import HeroBanner from '@/components/store/HeroBanner'
 import Link from 'next/link'
 import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } from 'lucide-react'
 
@@ -140,43 +141,10 @@ export default async function HomePage() {
       ? [categories[0], ...categories[0].children]
       : categories
 
-  const heroBanner = banners[0] || {
-    title: 'Royal Indian Traditional & Oxidised Jewellery',
-    subtitle: 'Antique Oxidised Silver & Traditional Grandeur',
-    description: 'Elevate your festive ensembles with timeless authentic Indian heritage and curated jewellery designs.',
-    imageUrl: '/images/banners/banner-1.jpg',
-    buttonText: 'Explore Collections',
-    linkUrl: '/products',
-  }
-
   return (
     <StoreLayout>
-      {/* Hero Banner Section - Clean, High-End Banner without Dark Overlay (Inspiration Style) */}
-      <section className="relative w-full overflow-hidden bg-[#FAF8F5] border-b border-[#E8E3DC]">
-        <Link
-          href={resolveLink(heroBanner.linkUrl)}
-          className="group relative block w-full overflow-hidden"
-        >
-          {/* Crisp, 100% Visible Banner Graphic */}
-          <div className="relative w-full">
-            <img
-              src={heroBanner.imageUrl}
-              alt={heroBanner.title || 'KALAVIES Jewellery Banner'}
-              className="w-full h-auto max-h-[580px] object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
-            />
-          </div>
-
-          {/* Floating Pill Capsule Button (Bottom-Right, Inspiration Style) */}
-          <div className="absolute bottom-4 right-4 sm:bottom-8 sm:right-10 md:bottom-12 md:right-14 z-10">
-            <div className="inline-flex items-center gap-2.5 sm:gap-3 rounded-full bg-white/95 hover:bg-white border border-[#C9A84C]/50 py-2 sm:py-2.5 pl-4 sm:pl-6 pr-2 sm:pr-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#1A1A1A] shadow-xl shadow-black/10 backdrop-blur-md transition-all group-hover:shadow-2xl group-hover:border-[#C9A84C] group-hover:scale-105">
-              <span>{heroBanner.buttonText || 'Explore Collection'}</span>
-              <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#C9A84C] text-white flex items-center justify-center shrink-0 group-hover:bg-[#B8963B] transition-colors shadow-sm">
-                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-              </span>
-            </div>
-          </div>
-        </Link>
-      </section>
+      {/* Responsive Hero Banner Carousel / Single Banner */}
+      <HeroBanner banners={banners} />
 
       {/* Coupon Strip */}
       {coupons.length > 0 && (
