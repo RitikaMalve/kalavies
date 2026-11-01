@@ -35,9 +35,9 @@ export default async function OrderPaymentPage({ params }: Props) {
   const latestPayment = order.payments[0] || null
 
   const activeSettings = {
-    qrImageUrl: paymentSetting?.qrImageUrl || '',
-    upiId: paymentSetting?.upiId || 'kalavies@upi',
-    payeeName: paymentSetting?.payeeName || 'KALAVIES Jewellery',
+    qrImageUrl: paymentSetting?.qrImageUrl || '/images/payment-qr.jpg',
+    upiId: paymentSetting?.upiId || 'lavanyamalve09-1@okhdfcbank',
+    payeeName: paymentSetting?.payeeName || 'Lavanya Malve',
     paymentInstructions:
       paymentSetting?.paymentInstructions ||
       'Scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, BHIM, Cred). Complete the payment of exact order amount, then copy the 12-digit UTR reference number and upload your screenshot below.',

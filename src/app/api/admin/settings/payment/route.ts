@@ -15,9 +15,9 @@ export async function GET() {
     if (!setting) {
       setting = await prisma.paymentSetting.create({
         data: {
-          qrImageUrl: '',
-          upiId: 'kalavies@upi',
-          payeeName: 'KALAVIES Jewellery',
+          qrImageUrl: '/images/payment-qr.jpg',
+          upiId: 'lavanyamalve09-1@okhdfcbank',
+          payeeName: 'Lavanya Malve',
           paymentInstructions:
             'Scan the UPI QR code with Google Pay, PhonePe, Paytm, or any UPI app. Pay the exact order amount, then enter the 12-digit UTR reference number and upload the screenshot.',
           isActive: true,

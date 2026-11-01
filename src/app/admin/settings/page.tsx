@@ -37,9 +37,9 @@ export default async function AdminSettingsPage({ searchParams }: Props) {
       }
       initialPaymentSetting={
         paymentSetting || {
-          qrImageUrl: '',
-          upiId: 'kalavies@upi',
-          payeeName: 'KALAVIES Jewellery',
+          qrImageUrl: '/images/payment-qr.jpg',
+          upiId: 'lavanyamalve09-1@okhdfcbank',
+          payeeName: 'Lavanya Malve',
           paymentInstructions:
             'Scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, BHIM, Cred). Complete the payment of exact order amount, then copy the 12-digit UTR reference number and upload your screenshot below.',
           isActive: true,

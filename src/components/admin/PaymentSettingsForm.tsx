@@ -29,9 +29,9 @@ interface PaymentSettingsFormProps {
 export default function PaymentSettingsForm({ initialSetting }: PaymentSettingsFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    qrImageUrl: initialSetting.qrImageUrl || '',
-    upiId: initialSetting.upiId || 'kalavies@upi',
-    payeeName: initialSetting.payeeName || 'KALAVIES Jewellery',
+    qrImageUrl: initialSetting.qrImageUrl || '/images/payment-qr.jpg',
+    upiId: initialSetting.upiId || 'lavanyamalve09-1@okhdfcbank',
+    payeeName: initialSetting.payeeName || 'Lavanya Malve',
     paymentInstructions:
       initialSetting.paymentInstructions ||
       'Scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, BHIM, Cred). Complete the payment of exact order amount, then copy the 12-digit UTR reference number and upload your screenshot below.',

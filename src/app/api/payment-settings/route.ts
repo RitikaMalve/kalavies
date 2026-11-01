@@ -18,9 +18,9 @@ export async function GET() {
 
     return NextResponse.json({
       setting: setting || {
-        qrImageUrl: '',
-        upiId: 'kalavies@upi',
-        payeeName: 'KALAVIES Jewellery',
+        qrImageUrl: '/images/payment-qr.jpg',
+        upiId: 'lavanyamalve09-1@okhdfcbank',
+        payeeName: 'Lavanya Malve',
         paymentInstructions:
           'Scan the QR code with any UPI application (GPay, PhonePe, Paytm, BHIM). Complete payment of exact amount, enter the 12-digit UTR reference number and upload the screenshot.',
         isActive: true,
