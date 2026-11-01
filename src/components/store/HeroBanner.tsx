@@ -103,52 +103,52 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
   const currentBanner = bannerList[currentIndex]
 
   return (
-    <section className="relative w-full bg-[#121212] sm:bg-[#FAF8F5] sm:py-3 md:py-4">
-      <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6">
-        <div
-          className="group relative overflow-hidden sm:rounded-2xl sm:border sm:border-[#2D2A26] bg-[#0E0E10] shadow-xl transition-all aspect-[16/10] sm:aspect-[21/9] min-h-[300px] sm:min-h-[420px] md:min-h-[480px]"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+    <section className="relative w-full bg-[#0E0E10] overflow-hidden">
+      <div
+        className="group relative w-full overflow-hidden transition-all aspect-[16/10] sm:aspect-[21/9] md:aspect-[24/9] min-h-[320px] sm:min-h-[440px] md:min-h-[500px] max-h-[640px]"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <Link
+          href={resolveLink(currentBanner.linkUrl)}
+          className="block relative w-full h-full overflow-hidden focus:outline-none"
         >
-          <Link
-            href={resolveLink(currentBanner.linkUrl)}
-            className="block relative w-full h-full overflow-hidden focus:outline-none"
-          >
-            {/* Background Jewellery Product Photography */}
-            <div className="absolute inset-0 w-full h-full">
-              <picture>
-                {currentBanner.mobileImageUrl && (
-                  <source
-                    media="(max-width: 640px)"
-                    srcSet={currentBanner.mobileImageUrl}
-                  />
-                )}
-                <img
-                  src={currentBanner.imageUrl}
-                  alt={currentBanner.title || 'KALAVIES Jewellery Banner'}
-                  className="w-full h-full object-cover object-center sm:object-right md:object-center transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
-                  loading="eager"
-                  fetchPriority="high"
+          {/* Background Jewellery Product Photography (Full-bleed Edge-to-Edge) */}
+          <div className="absolute inset-0 w-full h-full">
+            <picture>
+              {currentBanner.mobileImageUrl && (
+                <source
+                  media="(max-width: 640px)"
+                  srcSet={currentBanner.mobileImageUrl}
                 />
-              </picture>
+              )}
+              <img
+                src={currentBanner.imageUrl}
+                alt={currentBanner.title || 'KALAVIES Jewellery Banner'}
+                className="w-full h-full object-cover object-center sm:object-right md:object-center transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
+                loading="eager"
+                fetchPriority="high"
+              />
+            </picture>
 
-              {/* Luxury Gradient Vignette to ensure text readability on the left */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20 sm:from-black/90 sm:via-black/45 sm:to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 sm:hidden" />
-            </div>
+            {/* Luxury Gradient Vignette to ensure crisp typography on the left while jewellery shines on right */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20 sm:from-black/90 sm:via-black/45 sm:to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20 sm:hidden" />
+          </div>
 
-            {/* Editorial Content Showcase on Left */}
-            <div className="relative z-10 w-full h-full flex flex-col justify-end sm:justify-center px-5 pb-8 sm:pb-0 sm:px-10 md:px-14 max-w-xl">
+          {/* Editorial Content Showcase on Left (Container max-w-7xl aligns with page layout) */}
+          <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-5 sm:px-12 md:px-16 lg:px-20 flex flex-col justify-end sm:justify-center pb-8 sm:pb-0">
+            <div className="max-w-xl">
               {currentBanner.subtitle && (
-                <div className="inline-flex items-center gap-1.5 text-[#C9A84C] text-[10px] sm:text-xs font-semibold tracking-[0.25em] uppercase mb-1.5 sm:mb-2.5">
-                  <Sparkles size={12} className="text-[#C9A84C] shrink-0" />
+                <div className="inline-flex items-center gap-1.5 text-[#C9A84C] text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] uppercase mb-1.5 sm:mb-3">
+                  <Sparkles size={13} className="text-[#C9A84C] shrink-0" />
                   <span>{currentBanner.subtitle}</span>
                 </div>
               )}
 
               {currentBanner.title && (
                 <h1
-                  className="text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight mb-2 sm:mb-3 drop-shadow-md"
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight mb-2 sm:mb-4 drop-shadow-md"
                   style={{ fontFamily: 'Playfair Display, Georgia, serif' }}
                 >
                   {currentBanner.title}
@@ -171,50 +171,50 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
                 </span>
               </div>
             </div>
-          </Link>
+          </div>
+        </Link>
 
-          {/* Prominent Always-Visible Circular Controls (< and >) Matching User's Inspiration */}
-          {total > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={goToPrev}
-                aria-label="Previous Slide"
-                className="absolute left-2.5 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
-              </button>
-              <button
-                type="button"
-                onClick={goToNext}
-                aria-label="Next Slide"
-                className="absolute right-2.5 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
-              </button>
+        {/* Prominent Always-Visible Circular Controls (< and >) Matching User's Inspiration */}
+        {total > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={goToPrev}
+              aria-label="Previous Slide"
+              className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
+            </button>
+            <button
+              type="button"
+              onClick={goToNext}
+              aria-label="Next Slide"
+              className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-white text-[#111] shadow-2xl flex items-center justify-center border border-white/80 hover:bg-[#FAF8F5] hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
+            </button>
 
-              {/* Slide Dots Indicator */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 z-20">
-                {bannerList.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setCurrentIndex(i)
-                    }}
-                    aria-label={`Go to slide ${i + 1}`}
-                    className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentIndex
-                        ? 'w-6 sm:w-8 bg-[#C9A84C] shadow-md'
-                        : 'w-1.5 sm:w-2 bg-white/50 hover:bg-white/90'
-                    }`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+            {/* Slide Dots Indicator */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 z-20">
+              {bannerList.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setCurrentIndex(i)
+                  }}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
+                    i === currentIndex
+                      ? 'w-6 sm:w-8 bg-[#C9A84C] shadow-md'
+                      : 'w-1.5 sm:w-2 bg-white/50 hover:bg-white/90'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
   )
