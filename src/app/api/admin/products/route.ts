@@ -80,6 +80,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields (Name, Slug, SKU, Category)' }, { status: 400 })
     }
 
+    const parsedSellingPrice = Number(sellingPrice) || 0
+    let targetStatus = status || 'PUBLISHED'
+    if (targetStatus === 'PUBLISHED' && parsedSellingPrice <= 0) {
+      return NextResponse.json(
+        { error: 'Selling Price (Rate) must be greater than ₹0 to publish a product.' },
+        { status: 400 }
+      )
+    }
+
     const product = await prisma.product.create({
       data: {
         name: String(name).trim(),

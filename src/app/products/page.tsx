@@ -77,7 +77,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
   const limit = 16
 
   // Build where clause
-  const where: any = { status: 'PUBLISHED' }
+  const where: any = { status: 'PUBLISHED', sellingPrice: { gt: 0 } }
 
   if (search) {
     where.OR = [

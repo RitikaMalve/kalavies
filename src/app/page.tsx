@@ -49,19 +49,19 @@ export default async function HomePage() {
         orderBy: { sortOrder: 'asc' },
       }),
       prisma.product.findMany({
-        where: { isTrending: true, status: 'PUBLISHED' },
+        where: { isTrending: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { soldCount: 'desc' },
       }),
       prisma.product.findMany({
-        where: { isBestseller: true, status: 'PUBLISHED' },
+        where: { isBestseller: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { soldCount: 'desc' },
       }),
       prisma.product.findMany({
-        where: { isNewArrival: true, status: 'PUBLISHED' },
+        where: { isNewArrival: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { createdAt: 'desc' },

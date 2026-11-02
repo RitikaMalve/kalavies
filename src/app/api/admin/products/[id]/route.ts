@@ -58,6 +58,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     cleanSku = sku ? String(sku).trim().toUpperCase() : ''
 
+    const parsedSellingPrice = Number(sellingPrice) || 0
+    if (status === 'PUBLISHED' && parsedSellingPrice <= 0) {
+      return NextResponse.json(
+        { error: 'Selling Price (Rate) must be greater than ₹0 to publish a product.' },
+        { status: 400 }
+      )
+    }
+
     // Update product
     const updated = await prisma.product.update({
       where: { id },

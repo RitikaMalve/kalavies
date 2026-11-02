@@ -442,6 +442,13 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
       return
     }
 
+    // VALIDATION 4: Selling price (Rate) must be > 0 to publish
+    if (targetStatus === 'PUBLISHED' && (Number(formData.sellingPrice) <= 0 || isNaN(Number(formData.sellingPrice)))) {
+      setError('Selling Price (Rate) must be greater than ₹0 to publish this product. Please enter a valid rate or click "Save as Draft".')
+      setLoading(false)
+      return
+    }
+
     try {
       const payload = {
         ...formData,

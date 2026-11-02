@@ -90,6 +90,7 @@ export default async function ProductDetailPage({ params }: Props) {
           categoryId: product.categoryId,
           id: { not: product.id },
           status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
         },
         take: 4,
         include: { images: true, category: true },
