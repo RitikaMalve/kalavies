@@ -197,6 +197,63 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
           </div>
         </div>
 
+        {/* Horizontal Category & Quick Filter Pills for Mobile / Tablet */}
+        <div className="lg:hidden flex items-center gap-2 overflow-x-auto pb-2 -mx-4 px-4 pt-3 scrollbar-none">
+          <Link
+            href={`/products?sort=${sort}`}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              !categorySlug && !filterBadge
+                ? 'bg-[#1A1A1A] text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+            }`}
+          >
+            All Jewellery
+          </Link>
+          <Link
+            href={`/products?filter=trending&sort=${sort}`}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              filterBadge === 'trending'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-rose-400'
+            }`}
+          >
+            🔥 Trending
+          </Link>
+          <Link
+            href={`/products?filter=bestseller&sort=${sort}`}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              filterBadge === 'bestseller'
+                ? 'bg-purple-700 text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-purple-400'
+            }`}
+          >
+            ⭐ Bestsellers
+          </Link>
+          <Link
+            href={`/products?filter=new&sort=${sort}`}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              filterBadge === 'new'
+                ? 'bg-[#C9A84C] text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+            }`}
+          >
+            ✨ New In
+          </Link>
+          {categories.map((c) => (
+            <Link
+              key={c.id}
+              href={`/products?category=${c.slug}&sort=${sort}`}
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+                categorySlug === c.slug
+                  ? 'bg-[#C9A84C] text-white shadow-xs'
+                  : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+              }`}
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
           {/* Left Sidebar Filter */}
           <div className="hidden lg:block space-y-6">
@@ -333,7 +390,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product as any} />
                 ))}

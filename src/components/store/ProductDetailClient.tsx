@@ -174,7 +174,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 lg:gap-16 xl:gap-20 items-start w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
       {/* Left Column: Image Gallery (Equal 50% Width) */}
       <div className="w-full space-y-4">
         {/* Main Image */}
@@ -579,6 +579,46 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Floating Action Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8E3DC] px-4 py-3 shadow-2xl flex items-center justify-between gap-3 safe-area-bottom animate-fadeIn">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-extrabold text-[#1A1A1A]">
+              {formatPrice(currentPrice)}
+            </span>
+            {currentMrp > currentPrice && (
+              <span className="text-[11px] text-[#6B6B6B] line-through">
+                {formatPrice(currentMrp)}
+              </span>
+            )}
+          </div>
+          {discountPercent > 0 && (
+            <span className="text-[10px] font-bold text-emerald-700 block">
+              Save {formatPrice(currentMrp - currentPrice)}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock || isMaxStockInCart || isAdding}
+            className="rounded-xl border-2 border-[#1A1A1A] bg-white px-3.5 py-2.5 text-xs font-bold text-[#1A1A1A] active:scale-95 disabled:opacity-40 flex items-center gap-1.5 cursor-pointer shadow-xs"
+          >
+            {isAdding ? <Loader2 size={14} className="animate-spin" /> : <ShoppingBag size={14} />}
+            <span>Bag</span>
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={isOutOfStock || isMaxStockInCart || isBuying}
+            className="rounded-xl bg-[#C9A84C] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#B8963B] active:scale-95 disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
+          >
+            {isBuying ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+            <span>Buy Now</span>
+          </button>
         </div>
       </div>
     </div>

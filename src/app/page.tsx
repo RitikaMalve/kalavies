@@ -166,16 +166,16 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 lg:grid-cols-5 sm:gap-4 scrollbar-none">
           {displayCategories.map((cat: any) => {
             const catImage = CATEGORY_REAL_IMAGES[cat.slug] || cat.image || '/images/categories/oxidised-jewellery.jpg'
             return (
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
-                className="group relative rounded-2xl border border-[#E8E3DC] bg-white p-4 text-center shadow-sm hover:shadow-lg hover:border-[#C9A84C] transition-all duration-300 flex flex-col items-center justify-between"
+                className="group relative rounded-2xl border border-[#E8E3DC] bg-white p-3.5 sm:p-4 text-center shadow-xs hover:shadow-lg hover:border-[#C9A84C] transition-all duration-300 flex flex-col items-center justify-between shrink-0 w-36 sm:w-auto active:scale-95"
               >
-                <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl overflow-hidden border border-[#C9A84C]/25 bg-[#FAF8F5] mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-sm flex items-center justify-center relative">
+                <div className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 rounded-2xl overflow-hidden border border-[#C9A84C]/25 bg-[#FAF8F5] mb-2 sm:mb-3 group-hover:scale-105 group-hover:border-[#C9A84C] transition duration-300 shadow-xs flex items-center justify-center relative">
                   <img
                     src={catImage}
                     alt={cat.name}
@@ -186,10 +186,10 @@ export default async function HomePage() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition line-clamp-1">
+                  <h3 className="font-bold text-xs sm:text-sm text-[#2D2D2D] group-hover:text-[#C9A84C] transition line-clamp-1">
                     {cat.name}
                   </h3>
-                  <p className="text-[11px] text-[#6B6B6B] mt-0.5">
+                  <p className="text-[10px] sm:text-[11px] text-[#6B6B6B] mt-0.5">
                     {cat.children?.length > 0
                       ? `${cat.children.length} styles`
                       : cat._count?.products !== undefined
@@ -197,7 +197,7 @@ export default async function HomePage() {
                       : 'Curated'}
                   </p>
                 </div>
-                <span className="mt-3 inline-flex items-center text-[11px] font-semibold text-[#C9A84C] group-hover:translate-x-0.5 transition-transform">
+                <span className="mt-2 sm:mt-3 inline-flex items-center text-[10px] sm:text-[11px] font-semibold text-[#C9A84C] group-hover:translate-x-0.5 transition-transform">
                   Explore <ChevronRight size={12} className="ml-0.5" />
                 </span>
               </Link>
@@ -230,7 +230,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
               {trendingProducts.map((p) => (
                 <ProductCard key={p.id} product={p as any} />
               ))}
@@ -263,7 +263,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
             {bestsellers.map((p) => (
               <ProductCard key={p.id} product={p as any} />
             ))}
@@ -295,7 +295,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
               {newArrivals.map((p) => (
                 <ProductCard key={p.id} product={p as any} />
               ))}

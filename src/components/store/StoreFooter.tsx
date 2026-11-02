@@ -5,27 +5,27 @@ export default function StoreFooter() {
   return (
     <footer className="border-t border-[#E8E3DC] bg-[#1A1A1A] text-white">
       {/* Guarantees bar */}
-      <div className="border-b border-white/10 bg-[#222222] py-8">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
-          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
-            <Sparkles className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>100% Authentic Jewellery</h4>
-            <p className="text-xs text-stone-300">Stylish gold &amp; silver tone lightweight designs</p>
+      <div className="border-b border-white/10 bg-[#222222] py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-3 sm:p-4 hover:border-[#C9A84C]/50 transition shadow-xs">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#C9A84C]" />
+            <h4 className="text-xs sm:text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>100% Authentic Jewellery</h4>
+            <p className="text-[10px] sm:text-xs text-stone-300">Gold &amp; silver tone lightweight designs</p>
           </div>
-          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
-            <Truck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Free Express Shipping</h4>
-            <p className="text-xs text-stone-300">On all prepaid orders above ₹699</p>
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-3 sm:p-4 hover:border-[#C9A84C]/50 transition shadow-xs">
+            <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[#C9A84C]" />
+            <h4 className="text-xs sm:text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Free Express Shipping</h4>
+            <p className="text-[10px] sm:text-xs text-stone-300">On all prepaid orders above ₹699</p>
           </div>
-          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
-            <RefreshCw className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>7-Day Easy Returns</h4>
-            <p className="text-xs text-stone-300">Hassle-free replacement guarantee</p>
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-3 sm:p-4 hover:border-[#C9A84C]/50 transition shadow-xs">
+            <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-[#C9A84C]" />
+            <h4 className="text-xs sm:text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>7-Day Easy Returns</h4>
+            <p className="text-[10px] sm:text-xs text-stone-300">Hassle-free replacement guarantee</p>
           </div>
-          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-4 hover:border-[#C9A84C]/50 transition shadow-sm">
-            <ShieldCheck className="w-6 h-6 text-[#C9A84C]" />
-            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Secure UPI Checkout</h4>
-            <p className="text-xs text-stone-300">100% Safe, encrypted & bank-verified prepaid orders</p>
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl bg-white/[0.04] border border-white/10 p-3 sm:p-4 hover:border-[#C9A84C]/50 transition shadow-xs">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#C9A84C]" />
+            <h4 className="text-xs sm:text-sm font-bold tracking-wide" style={{ color: '#FFFFFF' }}>Secure UPI Checkout</h4>
+            <p className="text-[10px] sm:text-xs text-stone-300">100% Safe, bank-verified prepaid orders</p>
           </div>
         </div>
       </div>
