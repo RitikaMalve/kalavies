@@ -40,7 +40,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Everyday Elegance, Made Affordable',
       subtitle: 'DISCOVER BEAUTIFUL GOLD & SILVER IMITATION JEWELLERY FOR EVERY OCCASION',
       description: 'Lightweight daily-wear hoops, delicate chains, small studs, and minimal accents crafted for effortless style.',
-      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102',
+      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102c',
       buttonText: 'Shop Collection',
       linkUrl: '/products',
     },
@@ -49,7 +49,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Dainty Studs & Everyday Hoops',
       subtitle: 'LIGHTWEIGHT GOLD-TONE & SILVER-TONE ESSENTIALS',
       description: 'Comfortable, skin-friendly daily wear designed for college, work, and everyday moments.',
-      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102',
+      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102c',
       buttonText: 'Shop Earrings',
       linkUrl: '/products?category=earrings',
     },
@@ -58,7 +58,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Delicate Chains & Layered Pendants',
       subtitle: 'MINIMAL & TRENDY FOR CASUAL & SPECIAL OCCASIONS',
       description: 'Subtle sparkle with minimalist silver and gold-tone pendants for effortless everyday style.',
-      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102',
+      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102c',
       buttonText: 'Shop Necklaces',
       linkUrl: '/products?category=necklaces',
     },
@@ -141,15 +141,15 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               />
             </picture>
 
-            {/* Subtle Vignette Scrim - Lets Full Background Image Shine Bright & Vivid */}
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/65 via-black/20 to-black/30" />
+            {/* Top Contrast Scrim for Upper Text + Crystal-Clear Full Background for Jewellery Below */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/80 via-black/45 via-45% to-black/20" />
           </div>
 
-          {/* Centered Editorial Content Showcase Floating Over Full Background */}
-          <div className="relative z-10 w-full h-full max-w-5xl mx-auto px-4 sm:px-8 flex flex-col items-center justify-center text-center pb-8 sm:pb-0 pointer-events-none">
+          {/* Elevated Upper Editorial Content Showcase - Positioned Above Product Photography */}
+          <div className="relative z-10 w-full h-full max-w-5xl mx-auto px-4 sm:px-8 flex flex-col items-center justify-start pt-7 sm:pt-11 md:pt-14 lg:pt-18 text-center pointer-events-none">
             <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
               {currentBanner.subtitle && (
-                <div className="inline-flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-4 py-1.5 rounded-full bg-black/40 text-amber-300 border border-amber-300/30 backdrop-blur-md shadow-lg">
+                <div className="inline-flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-4 py-1.5 rounded-full bg-black/50 text-amber-300 border border-amber-300/40 backdrop-blur-md shadow-lg">
                   <Sparkles size={13} className="text-amber-300 shrink-0" />
                   <span>{currentBanner.subtitle}</span>
                 </div>
@@ -157,7 +157,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
               {currentBanner.title && (
                 <h1
-                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-2 sm:mb-4 text-center text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-2 sm:mb-3 text-center text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]"
                   style={{ fontFamily: 'Playfair Display, Georgia, serif' }}
                 >
                   {currentBanner.title}
@@ -165,13 +165,13 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               )}
 
               {currentBanner.description && (
-                <p className="text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 sm:mb-7 line-clamp-2 sm:line-clamp-3 max-w-xl mx-auto text-center text-stone-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <p className="text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3 max-w-xl mx-auto text-center text-stone-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                   {currentBanner.description}
                 </p>
               )}
 
               {/* Shop Now Capsule Button */}
-              <div className="pt-1 pointer-events-auto flex justify-center">
+              <div className="pointer-events-auto flex justify-center">
                 <span className="inline-flex items-center gap-3 rounded-full py-2.5 sm:py-3.5 px-6 sm:px-9 text-xs sm:text-sm font-bold tracking-wider shadow-2xl transition-all duration-300 bg-white text-stone-950 hover:bg-[#C9A84C] hover:text-white border border-white/80 group-hover:scale-105">
                   <span>{currentBanner.buttonText || 'Shop Collection'}</span>
                   <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C9A84C] group-hover:bg-white text-white group-hover:text-stone-900 flex items-center justify-center shrink-0 shadow-sm transition-colors">
