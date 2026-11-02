@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Sparkles, AlertTriangle, AlertCircle, Loader2 } from 'lucide-react'
+import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Sparkles, AlertTriangle, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
@@ -49,9 +49,54 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const { addItem, openCart, items } = useCart()
   const { isInWishlist, toggleItem } = useWishlist()
 
-  const [selectedImage, setSelectedImage] = useState<string>(
-    product.images[0]?.url || '/images/products/placeholder-1.jpg'
-  )
+  const rawImages = (product.images && product.images.length > 0) ? product.images : []
+  const galleryImages =
+    rawImages.length > 0
+      ? rawImages
+      : [{ id: 'placeholder', url: '/images/products/placeholder-1.jpg' }]
+
+  const getImageUrl = (item: any): string => {
+    if (!item) return '/images/products/placeholder-1.jpg'
+    if (typeof item === 'string') return item
+    if (typeof item.url === 'string') return item.url
+    return '/images/products/placeholder-1.jpg'
+  }
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+
+  const selectedImage = getImageUrl(galleryImages[currentImageIndex]) || getImageUrl(galleryImages[0])
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
+  }
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1))
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const diff = touchStartX - touchEndX
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleNextImage()
+      } else {
+        handlePrevImage()
+      }
+    }
+    setTouchStartX(null)
+  }
+
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
     product.variants[0] || null
   )
@@ -133,14 +178,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       {/* Left Column: Image Gallery */}
       <div className="space-y-4">
         {/* Main Image */}
-        <div className="relative aspect-square rounded-2xl border border-[#E8E3DC] bg-white overflow-hidden shadow-sm flex items-center justify-center">
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="relative aspect-square rounded-2xl border border-[#E8E3DC] bg-white overflow-hidden shadow-sm flex items-center justify-center group select-none"
+        >
           <img
             src={selectedImage}
             alt={product.name}
             className="w-full h-full object-cover transition-all duration-300 hover:scale-105"
           />
           {discountPercent > 0 && (
-            <span className="absolute top-4 left-4 rounded-full bg-[#C9A84C] px-3 py-1 text-xs font-bold text-white uppercase shadow">
+            <span className="absolute top-4 left-4 rounded-full bg-[#C9A84C] px-3 py-1 text-xs font-bold text-white uppercase shadow pointer-events-none">
               {discountPercent}% OFF
             </span>
           )}
@@ -156,30 +205,78 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 image: selectedImage,
               })
             }
-            className={`absolute top-4 right-4 h-10 w-10 rounded-full flex items-center justify-center shadow transition ${
+            className={`absolute top-4 right-4 h-10 w-10 rounded-full flex items-center justify-center shadow transition z-10 ${
               isFavorited
                 ? 'bg-red-50 text-red-600'
                 : 'bg-white/90 text-[#2D2D2D] hover:bg-white hover:text-red-600'
             }`}
+            aria-label={isFavorited ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
           </button>
+
+          {/* Navigation Arrows */}
+          {galleryImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                aria-label="Previous image"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white text-[#1A1A1A] hover:bg-[#C9A84C] hover:text-white shadow-xl flex items-center justify-center transition-all duration-200 z-30 border border-gray-200 active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft size={24} strokeWidth={2.5} className="-ml-0.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                aria-label="Next image"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-white text-[#1A1A1A] hover:bg-[#C9A84C] hover:text-white shadow-xl flex items-center justify-center transition-all duration-200 z-30 border border-gray-200 active:scale-95 cursor-pointer"
+              >
+                <ChevronRight size={24} strokeWidth={2.5} className="-mr-0.5" />
+              </button>
+
+              {/* Slider Dots */}
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md z-30 pointer-events-auto shadow-sm">
+                {galleryImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setCurrentImageIndex(idx)
+                    }}
+                    aria-label={`Go to slide ${idx + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      currentImageIndex === idx ? 'w-6 bg-white' : 'w-2 bg-white/60 hover:bg-white/90'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Thumbnails */}
-        {product.images.length > 1 && (
+        {galleryImages.length > 1 && (
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {product.images.map((img) => (
-              <button
-                key={img.id}
-                onClick={() => setSelectedImage(img.url)}
-                className={`h-20 w-20 shrink-0 rounded-xl border-2 overflow-hidden bg-white transition ${
-                  selectedImage === img.url ? 'border-[#C9A84C] shadow-md' : 'border-[#E8E3DC]'
-                }`}
-              >
-                <img src={img.url} alt="Thumbnail" className="w-full h-full object-cover" />
-              </button>
-            ))}
+            {galleryImages.map((img, idx) => {
+              const url = getImageUrl(img)
+              return (
+                <button
+                  key={(img as any)?.id || idx}
+                  type="button"
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`h-20 w-20 shrink-0 rounded-xl border-2 overflow-hidden bg-white transition ${
+                    currentImageIndex === idx
+                      ? 'border-[#C9A84C] shadow-md ring-2 ring-[#C9A84C]/30'
+                      : 'border-[#E8E3DC] hover:border-gray-400'
+                  }`}
+                >
+                  <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              )
+            })}
           </div>
         )}
       </div>

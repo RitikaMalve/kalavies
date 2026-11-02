@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Eye, CheckCircle2, ShieldCheck, Truck, Sparkles, Heart } from 'lucide-react'
+import { X, Eye, CheckCircle2, ShieldCheck, Truck, Sparkles, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ProductPreviewModalProps {
   isOpen: boolean
@@ -30,6 +30,7 @@ export default function ProductPreviewModal({
   product,
 }: ProductPreviewModalProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
 
   if (!isOpen) return null
 
@@ -37,6 +38,36 @@ export default function ProductPreviewModal({
     product.images && product.images.length > 0
       ? product.images
       : ['/images/products/placeholder-1.jpg']
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setSelectedImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))
+  }
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setSelectedImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const diff = touchStartX - touchEndX
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleNextImage()
+      } else {
+        handlePrevImage()
+      }
+    }
+    setTouchStartX(null)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-fadeIn overflow-y-auto">
@@ -71,20 +102,60 @@ export default function ProductPreviewModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left: Images */}
             <div className="space-y-4">
-              <div className="relative aspect-square w-full rounded-2xl border border-[#E8E3DC] overflow-hidden bg-[#FAF8F5] flex items-center justify-center shadow-sm">
+              <div
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                className="relative aspect-square w-full rounded-2xl border border-[#E8E3DC] overflow-hidden bg-[#FAF8F5] flex items-center justify-center shadow-sm group select-none"
+              >
                 <img
                   src={displayImages[selectedImageIndex] || displayImages[0]}
                   alt={product.name || 'Product Preview'}
                   className="w-full h-full object-cover transition-all duration-300"
                 />
                 {product.discountPercent > 0 && (
-                  <span className="absolute top-3 left-3 rounded-full bg-[#C9A84C] px-2.5 py-1 text-xs font-bold text-white shadow">
+                  <span className="absolute top-3 left-3 rounded-full bg-[#C9A84C] px-2.5 py-1 text-xs font-bold text-white shadow pointer-events-none">
                     {product.discountPercent}% OFF
                   </span>
                 )}
                 <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 shadow-sm text-gray-400">
                   <Heart size={16} />
                 </div>
+
+                {/* Prev / Next Arrows */}
+                {displayImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handlePrevImage}
+                      aria-label="Previous image"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 hover:bg-white text-[#2D2D2D] hover:text-[#C9A84C] shadow-md flex items-center justify-center transition-all backdrop-blur-sm z-10 border border-[#E8E3DC] active:scale-95"
+                    >
+                      <ChevronLeft size={20} className="-ml-0.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextImage}
+                      aria-label="Next image"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 hover:bg-white text-[#2D2D2D] hover:text-[#C9A84C] shadow-md flex items-center justify-center transition-all backdrop-blur-sm z-10 border border-[#E8E3DC] active:scale-95"
+                    >
+                      <ChevronRight size={20} className="-mr-0.5" />
+                    </button>
+
+                    {/* Indicator dots */}
+                    <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/35 backdrop-blur-sm z-10">
+                      {displayImages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            selectedImageIndex === idx ? 'w-4 bg-white' : 'w-1.5 bg-white/60 hover:bg-white/90'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Thumbnails */}
