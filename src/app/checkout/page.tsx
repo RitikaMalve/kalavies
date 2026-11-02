@@ -70,6 +70,8 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [stockIssues, setStockIssues] = useState<string[]>([])
+  const [checkingStock, setCheckingStock] = useState(false)
 
   // Current session user
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -185,6 +187,46 @@ export default function CheckoutPage() {
       .catch(() => {})
   }, [])
 
+  // Auto-verify live stock availability for all items in checkout
+  useEffect(() => {
+    if (items.length === 0) {
+      setStockIssues([])
+      return
+    }
+
+    let isMounted = true
+    setCheckingStock(true)
+    fetch('/api/stock/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items.map((i) => ({
+          productId: i.productId,
+          variantId: i.variantId,
+          quantity: i.quantity,
+        })),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return
+        if (data.items) {
+          const issues = data.items
+            .filter((item: any) => !item.isAvailable)
+            .map((item: any) => item.message)
+          setStockIssues(issues)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setCheckingStock(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [items])
+
   const isFreeShipping = subtotal >= freeShippingThreshold
   const shippingCharge = isFreeShipping ? 0 : flatShippingRate
   const finalTotal = subtotal + shippingCharge
@@ -196,11 +238,9 @@ export default function CheckoutPage() {
       return
     }
 
-    const stockExceededItem = items.find((i) => i.quantity > (i.maxStock ?? 9999))
-    if (stockExceededItem) {
-      setError(
-        `Only ${stockExceededItem.maxStock} unit(s) of "${stockExceededItem.name}" available in stock. Please adjust your bag quantity.`
-      )
+    // Check pre-loaded stock issues
+    if (stockIssues.length > 0) {
+      setError(stockIssues[0] || 'Please adjust your bag as some items are sold out.')
       return
     }
 
@@ -225,6 +265,33 @@ export default function CheckoutPage() {
 
     setLoading(true)
     setError('')
+
+    // Fast pre-flight live stock verification before final order placement
+    try {
+      const stockRes = await fetch('/api/stock/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId,
+            quantity: i.quantity,
+          })),
+        }),
+      })
+      const stockData = await stockRes.json()
+      if (stockData.items && !stockData.allAvailable) {
+        const issues = stockData.items
+          .filter((item: any) => !item.isAvailable)
+          .map((item: any) => item.message)
+        setStockIssues(issues)
+        setError(issues.join(' • ') || 'Some items in your cart are no longer available in stock.')
+        setLoading(false)
+        return
+      }
+    } catch {
+      // Non-blocking fallback to server transaction
+    }
 
     try {
       const orderPayload = {
@@ -321,6 +388,29 @@ export default function CheckoutPage() {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Stock issues alert */}
+        {stockIssues.length > 0 && (
+          <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4 text-xs font-semibold text-red-800 space-y-2 shadow-xs animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-bold text-red-900">
+                <AlertCircle size={18} className="text-red-600 shrink-0" />
+                Stock Availability Notice
+              </div>
+              <Link
+                href="/cart"
+                className="text-xs font-bold text-red-700 underline hover:text-red-900"
+              >
+                Go to Bag to Adjust →
+              </Link>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-red-700 pl-1">
+              {stockIssues.map((issue, idx) => (
+                <li key={idx}>{issue}</li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -641,12 +731,16 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                disabled={loading || items.length === 0}
+                disabled={loading || items.length === 0 || stockIssues.length > 0}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#B8963B] transition disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader2 size={16} className="animate-spin" /> Creating Order...
+                  </span>
+                ) : stockIssues.length > 0 ? (
+                  <span className="flex items-center gap-2">
+                    <AlertCircle size={18} /> Some Items Sold Out — Check Bag
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">

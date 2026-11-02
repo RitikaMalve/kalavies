@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { restoreOrderInventoryStock } from '@/lib/stock'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,31 +52,8 @@ export async function POST(req: NextRequest, { params }: Props) {
 
     // Perform cancellation & stock restoration inside a transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Restore product inventory stock
-      for (const item of order.items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } })
-        if (product) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              totalStock: { increment: item.quantity },
-              soldCount: { decrement: item.quantity },
-            },
-          })
-
-          await tx.stockMovement.create({
-            data: {
-              productId: item.productId,
-              variantId: item.variantId || null,
-              type: 'RETURN',
-              quantity: item.quantity,
-              reason: `Order Cancellation ${order.orderNumber} - ${cancellationReasonText}`,
-              previousQty: product.totalStock,
-              newQty: product.totalStock + item.quantity,
-            },
-          })
-        }
-      }
+      // 1. Idempotently restore product inventory stock (guaranteed to restore only once)
+      await restoreOrderInventoryStock(tx, order.id, cancellationReasonText, sessionUser?.id)
 
       // 2. Update Order
       await tx.order.update({

@@ -288,7 +288,7 @@ export default function InventoryManager({
                                 : 'bg-green-100 text-green-800'
                             }`}
                           >
-                            {isOut ? 'Out of Stock' : isLow ? 'Low Stock Alert' : 'Healthy Stock'}
+                            {isOut ? 'Sold Out' : isLow ? 'Low Stock Alert' : 'In Stock'}
                           </span>
                         </td>
 

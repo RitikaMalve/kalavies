@@ -109,14 +109,14 @@ export function timeAgo(date: Date | string): string {
 }
 
 export const ORDER_STATUSES = {
-  PENDING_PAYMENT: { label: 'Awaiting Payment', color: 'bg-amber-100 text-amber-900 border border-amber-300' },
-  PAYMENT_VERIFICATION: { label: 'Payment Verification', color: 'bg-blue-100 text-blue-900 border border-blue-300' },
+  PENDING_PAYMENT: { label: 'Payment Pending (Reserved)', color: 'bg-amber-100 text-amber-900 border border-amber-300' },
+  PAYMENT_VERIFICATION: { label: 'Pending Verification', color: 'bg-blue-100 text-blue-900 border border-blue-300' },
   PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
   CONFIRMED: { label: 'Confirmed', color: 'bg-emerald-100 text-emerald-900 border border-emerald-300' },
   PROCESSING: { label: 'Processing & Packing', color: 'bg-indigo-100 text-indigo-900' },
   SHIPPED: { label: 'Dispatched / Shipped', color: 'bg-purple-100 text-purple-900' },
   DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-900' },
-  CANCELLED: { label: 'Cancelled', color: 'bg-red-100 text-red-900' },
+  CANCELLED: { label: 'Cancelled (Stock Restored)', color: 'bg-red-100 text-red-900' },
   RETURNED: { label: 'Returned', color: 'bg-gray-100 text-gray-800' },
 } as const
 

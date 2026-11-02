@@ -232,12 +232,17 @@ export default function CartPage() {
                           )}
                         </div>
 
-                        {item.quantity >= (item.maxStock ?? 9999) && (
+                        {(item.maxStock ?? 9999) <= 0 ? (
+                          <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-red-800 bg-red-50 border border-red-200 rounded-md px-2 py-0.5">
+                            <AlertCircle size={13} className="text-red-600 shrink-0" />
+                            <span>Sold Out — Please remove from bag</span>
+                          </div>
+                        ) : item.quantity >= (item.maxStock ?? 9999) ? (
                           <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5">
                             <AlertCircle size={13} className="text-amber-600 shrink-0" />
                             <span>Only {item.maxStock} in stock (Maximum limit reached)</span>
                           </div>
-                        )}
+                        ) : null}
                       </div>
 
                       <div className="flex items-center justify-between pt-3">
@@ -372,12 +377,21 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                <Link
-                  href="/checkout"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition"
-                >
-                  Proceed to Checkout <ArrowRight size={16} />
-                </Link>
+                {items.some((i) => (i.maxStock ?? 9999) <= 0) ? (
+                  <button
+                    disabled
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gray-200 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed"
+                  >
+                    Remove Sold Out Items to Checkout
+                  </button>
+                ) : (
+                  <Link
+                    href="/checkout"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9A84C] py-3.5 text-sm font-bold text-white shadow hover:bg-[#B8963B] transition"
+                  >
+                    Proceed to Checkout <ArrowRight size={16} />
+                  </Link>
+                )}
 
                 <Link
                   href="/products"

@@ -133,39 +133,82 @@ export async function POST(req: NextRequest) {
     const verifiedShippingCharge = Number(subtotal) >= freeShippingAbove ? 0 : flatShippingRate
     const verifiedTotalAmount = Number(subtotal) + verifiedShippingCharge
 
-    // Database transaction to ensure atomicity
+    // Database transaction to ensure atomicity and prevent race conditions
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Verify and reduce stock for all items
+      // 1. Verify and atomically reserve/reduce stock for all items
       for (const item of items) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-        })
+        const itemQuantity = Number(item.quantity) || 1
 
-        if (!product || product.totalStock < item.quantity) {
-          throw new Error(
-            `Insufficient stock for "${item.productName}". Available: ${product?.totalStock || 0}`
-          )
-        }
-
-        // Deduct product stock
-        await tx.product.update({
-          where: { id: item.productId },
+        // Atomic row-level conditional decrement on Product to prevent race conditions
+        const productUpdate = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            totalStock: { gte: itemQuantity },
+          },
           data: {
-            totalStock: { decrement: item.quantity },
-            soldCount: { increment: item.quantity },
+            totalStock: { decrement: itemQuantity },
+            soldCount: { increment: itemQuantity },
           },
         })
 
-        // Log stock movement
+        if (productUpdate.count === 0) {
+          const currentProduct = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { totalStock: true, name: true },
+          })
+
+          if (!currentProduct || currentProduct.totalStock <= 0) {
+            throw new Error(
+              `"${item.productName || currentProduct?.name || 'Item'}" is Sold Out. Another customer just purchased the last unit.`
+            )
+          } else {
+            throw new Error(
+              `Insufficient stock for "${item.productName || currentProduct.name}". Only ${currentProduct.totalStock} unit(s) remaining in stock.`
+            )
+          }
+        }
+
+        // If variant is selected, also atomically decrement variant stock
+        if (item.variantId) {
+          const variantUpdate = await tx.productVariant.updateMany({
+            where: {
+              id: item.variantId,
+              stock: { gte: itemQuantity },
+            },
+            data: {
+              stock: { decrement: itemQuantity },
+            },
+          })
+
+          if (variantUpdate.count === 0) {
+            const currentVariant = await tx.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { stock: true, name: true },
+            })
+            throw new Error(
+              `Selected variant for "${item.productName}" is Sold Out. (Available: ${currentVariant?.stock || 0})`
+            )
+          }
+        }
+
+        // Fetch remaining stock for audit logging
+        const freshProduct = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { totalStock: true },
+        })
+        const newStock = freshProduct?.totalStock ?? 0
+
+        // Log stock movement with order reference
         await tx.stockMovement.create({
           data: {
             productId: item.productId,
             variantId: item.variantId || null,
             type: 'SALE',
-            quantity: -item.quantity,
-            reason: `Order ${orderNumber}`,
-            previousQty: product.totalStock,
-            newQty: product.totalStock - item.quantity,
+            quantity: -itemQuantity,
+            reference: orderNumber,
+            reason: `Order ${orderNumber} - Stock Reserved for UPI Payment`,
+            previousQty: newStock + itemQuantity,
+            newQty: newStock,
           },
         })
       }

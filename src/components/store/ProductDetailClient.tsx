@@ -358,7 +358,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         <div>
           {isOutOfStock ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">
-              Out of Stock
+              Sold Out
             </span>
           ) : currentStock <= 5 ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
@@ -441,7 +441,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {isAdding
                 ? 'Adding to Bag...'
                 : isOutOfStock
-                ? 'Out of Stock'
+                ? 'Sold Out'
                 : isMaxStockInCart
                 ? `Max in Bag (${currentStock})`
                 : 'Add to Bag'}
@@ -455,7 +455,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {isBuying
                 ? 'Redirecting to Checkout...'
                 : isOutOfStock
-                ? 'Out of Stock'
+                ? 'Sold Out'
                 : isMaxStockInCart
                 ? `Max in Bag (${currentStock})`
                 : 'Buy Now'}
