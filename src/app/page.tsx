@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductCard from '@/components/store/ProductCard'
 import HeroBanner from '@/components/store/HeroBanner'
+import PromotionalRibbon from '@/components/store/PromotionalRibbon'
 import Link from 'next/link'
 import { Sparkles, ArrowRight, ShieldCheck, Heart, Star, Tag, ChevronRight } from 'lucide-react'
 
@@ -145,22 +146,8 @@ export default async function HomePage() {
       {/* Responsive Hero Banner Carousel / Single Banner */}
       <HeroBanner banners={banners} />
 
-      {/* Coupon Strip */}
-      {coupons.length > 0 && (
-        <section className="bg-[#FAF8F5] border-y border-[#E8E3DC] py-3">
-          <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 text-xs text-[#2D2D2D]">
-            {coupons.map((c) => (
-              <div key={c.id} className="flex items-center gap-2">
-                <Tag size={14} className="text-[#C9A84C]" />
-                <span>
-                  Use code <strong className="font-mono text-[#C9A84C]">{c.code}</strong> for{' '}
-                  {c.type === 'PERCENTAGE' ? `${c.value}% OFF` : `₹${c.value} OFF`}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Creative Interactive Perks & Promotional Ribbon */}
+      <PromotionalRibbon coupons={coupons} />
 
       {/* Categories Showcase */}
       <section className="max-w-7xl mx-auto px-4 py-16">
