@@ -174,14 +174,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-      {/* Left Column: Image Gallery */}
-      <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
+      {/* Left Column: Image Gallery (Equal 50% Width) */}
+      <div className="w-full space-y-4">
         {/* Main Image */}
         <div
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className="relative aspect-square rounded-2xl border border-[#E8E3DC] bg-white overflow-hidden shadow-sm flex items-center justify-center group select-none"
+          className="relative aspect-square w-full rounded-2xl border border-[#E8E3DC] bg-white overflow-hidden shadow-sm flex items-center justify-center group select-none"
         >
           <img
             src={selectedImage}
@@ -281,8 +281,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         )}
       </div>
 
-      {/* Right Column: Product Info & Actions */}
-      <div className="space-y-6">
+      {/* Right Column: Product Info & Actions (Equal 50% Width) */}
+      <div className="w-full space-y-6">
         <div>
           <span className="text-xs font-bold uppercase tracking-widest text-[#C9A84C]">
             {product.brandName || 'KALAVIES Jewellery'}

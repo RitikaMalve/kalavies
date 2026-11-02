@@ -176,7 +176,7 @@ export default async function ProductDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-[#6B6B6B] mb-8">
           <Link href="/" className="hover:text-[#C9A84C]">Home</Link>
