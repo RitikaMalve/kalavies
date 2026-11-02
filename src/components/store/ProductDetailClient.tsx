@@ -174,7 +174,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 lg:gap-16 xl:gap-20 items-start w-full">
       {/* Left Column: Image Gallery (Equal 50% Width) */}
       <div className="w-full space-y-4">
         {/* Main Image */}

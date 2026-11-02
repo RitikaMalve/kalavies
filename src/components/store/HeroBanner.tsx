@@ -136,7 +136,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               <img
                 src={currentBanner.imageUrl}
                 alt={currentBanner.title || 'KALAVIES Jewellery Banner'}
-                className="w-full h-full object-cover object-right md:object-center transition-transform duration-1000 ease-out group-hover:scale-[1.01]"
+                className="w-full h-full object-cover object-right transition-transform duration-1000 ease-out group-hover:scale-[1.01]"
                 loading="eager"
                 fetchPriority="high"
               />
@@ -146,8 +146,8 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
             <div
               className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
                 isDark
-                  ? 'bg-gradient-to-r from-black/85 via-black/50 to-transparent sm:from-black/85 sm:via-black/40 sm:to-transparent'
-                  : 'bg-gradient-to-r from-[#FAF8F5]/95 via-[#FAF8F5]/65 to-transparent sm:from-[#FAF8F5]/90 sm:via-[#FAF8F5]/40 sm:to-transparent'
+                  ? 'bg-gradient-to-r from-black/85 via-black/50 to-transparent sm:from-black/85 sm:via-black/35 sm:to-transparent'
+                  : 'bg-gradient-to-r from-[#FAF8F5]/95 via-[#FAF8F5]/65 to-transparent sm:from-[#FAF8F5]/90 sm:via-[#FAF8F5]/35 sm:to-transparent'
               }`}
             />
             <div
@@ -159,9 +159,9 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
             />
           </div>
 
-          {/* Left-Shifted Editorial Content Showcase */}
+          {/* Left-Shifted Editorial Content Showcase - Spacious Gap to Right Image */}
           <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-6 sm:px-10 md:px-14 lg:px-16 flex flex-col justify-center items-start text-left pb-6 sm:pb-0 pointer-events-none">
-            <div className="max-w-xl text-left">
+            <div className="max-w-md lg:max-w-lg pr-4 text-left">
               {currentBanner.subtitle && (
                 <div
                   className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-3.5 py-1 rounded-full ${
