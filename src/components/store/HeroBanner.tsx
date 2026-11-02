@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface BannerItem {
   id: string
@@ -40,28 +40,28 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Everyday Elegance, Made Affordable',
       subtitle: 'HANDCRAFTED GOLD & SILVER ESSENTIALS',
       description: 'Lightweight daily-wear chains, small charms, and minimal accents crafted for effortless style.',
-      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102w',
-      mobileImageUrl: '/images/banners/hero-necklace-mobile.jpg?v=20261102w',
+      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102y',
+      mobileImageUrl: '/images/banners/hero-necklace-mobile.jpg?v=20261102y',
       buttonText: 'Shop Collection',
       linkUrl: '/products',
     },
     {
       id: 'default-hero-earrings',
       title: 'Dainty Studs & Everyday Hoops',
-      subtitle: 'LIGHTWEIGHT GOLD-TONE & SILVER-TONE ESSENTIALS',
+      subtitle: 'OXIDISED PEACOCK & TURQUOISE COLLECTION',
       description: 'Comfortable, skin-friendly daily wear designed for college, work, and everyday moments.',
-      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102w',
-      mobileImageUrl: '/images/banners/hero-earrings-mobile.jpg?v=20261102w',
+      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102y',
+      mobileImageUrl: '/images/banners/hero-earrings-mobile.jpg?v=20261102y',
       buttonText: 'Shop Earrings',
       linkUrl: '/products?category=earrings',
     },
     {
       id: 'default-hero-chains',
-      title: 'Delicate Crystals & Layered Chains',
-      subtitle: 'MINIMAL & TRENDY FOR CASUAL & SPECIAL OCCASIONS',
+      title: 'Delicate Crystals & Floral Drops',
+      subtitle: 'TIMELESS FLORAL SPARKLE ESSENTIALS',
       description: 'Subtle sparkle with minimalist silver drop earrings and gold-tone pendants for effortless everyday style.',
-      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102w',
-      mobileImageUrl: '/images/banners/hero-bangles-mobile.jpg?v=20261102w',
+      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102y',
+      mobileImageUrl: '/images/banners/hero-bangles-mobile.jpg?v=20261102y',
       buttonText: 'Shop Crystals',
       linkUrl: '/products?category=earrings',
     },
@@ -114,11 +114,17 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
   const currentBanner = bannerList[currentIndex]
 
+  // Check if title is formatted with bilingual separator (e.g., कलाविएस | KALAVIES)
+  const isBilingual = currentBanner.title?.includes('|')
+  const [devanagariPart, englishPart] = isBilingual
+    ? (currentBanner.title || '').split('|').map((s) => s.trim())
+    : [null, currentBanner.title]
+
   return (
     <section className="relative w-full overflow-hidden bg-[#FAF8F5]">
       {/* 100% Full-Width Edge-to-Edge Container without Side Margins */}
       <div
-        className="group relative w-full h-[460px] sm:h-[540px] md:h-[620px] lg:h-[680px] overflow-hidden"
+        className="group relative w-full h-[440px] sm:h-[520px] md:h-[600px] lg:h-[660px] overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -126,7 +132,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
           href={resolveLink(currentBanner.linkUrl)}
           className="block relative w-full h-full overflow-hidden focus:outline-none"
         >
-          {/* Background Sunlit Canvas with Featured Single Jewellery Card on Right */}
+          {/* Background Photography seamlessly blended into warm studio background */}
           <div className="absolute inset-0 w-full h-full">
             <picture>
               {currentBanner.mobileImageUrl && (
@@ -145,48 +151,66 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
             </picture>
 
             {/* Seamless Soft Scrim for perfect text readability on mobile devices */}
-            <div className="absolute inset-0 pointer-events-none sm:hidden bg-gradient-to-t from-[#FAF8F5]/95 via-[#FAF8F5]/50 to-transparent" />
+            <div className="absolute inset-0 pointer-events-none sm:hidden bg-gradient-to-t from-[#FAF8F5]/95 via-[#FAF8F5]/45 to-transparent" />
           </div>
 
-          {/* Left-Shifted Editorial Content Showcase — Matching User's Screenshot Exactly */}
-          <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-6 sm:px-10 md:px-14 lg:px-20 flex flex-col justify-center items-start text-left pb-8 sm:pb-0 pointer-events-none">
-            <div className="max-w-md lg:max-w-lg pr-4 text-left">
+          {/* Centered-Left Editorial Content Showcase — Exactly Matching Screenshot */}
+          <div className="relative z-10 w-full h-full max-w-5xl mx-auto px-4 sm:px-8 flex flex-col items-center justify-center text-center pb-8 sm:pb-0 pointer-events-none">
+            <div className="flex flex-col items-center text-center max-w-xl mx-auto">
               
-              {/* Category Pill Badge with Sparkles */}
-              {currentBanner.subtitle && (
-                <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-3.5 py-1 rounded-full bg-white/85 text-[#A07828] border border-[#A07828]/25 shadow-xs backdrop-blur-xs">
-                  <Sparkles size={13} className="text-[#A07828] shrink-0" />
-                  <span>{currentBanner.subtitle}</span>
-                </div>
-              )}
-
-              {/* Bold Editorial Headline */}
-              {currentBanner.title && (
+              {/* Headline */}
+              {isBilingual ? (
                 <h1
-                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.14] mb-2 sm:mb-4 text-[#1C1917] text-left"
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[#1C1917] drop-shadow-xs flex items-center justify-center flex-wrap gap-x-3 sm:gap-x-4 mb-1.5 sm:mb-2.5"
+                  style={{ fontFamily: 'Playfair Display, "Noto Serif Devanagari", Georgia, serif' }}
+                >
+                  <span>{devanagariPart}</span>
+                  <span className="text-[#C5A059] font-light text-xl sm:text-3xl md:text-4xl opacity-80 select-none">|</span>
+                  <span>{englishPart}</span>
+                </h1>
+              ) : currentBanner.title ? (
+                <h1
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[#1C1917] drop-shadow-xs mb-1.5 sm:mb-2.5"
                   style={{ fontFamily: 'Playfair Display, Georgia, serif' }}
                 >
                   {currentBanner.title}
                 </h1>
-              )}
+              ) : null}
 
-              {/* Subtitle / Description */}
-              {currentBanner.description && (
-                <p className="text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 sm:mb-7 line-clamp-2 sm:line-clamp-3 max-w-md text-[#44403C] text-left">
-                  {currentBanner.description}
+              {/* Subtitle */}
+              {currentBanner.subtitle && (
+                <p className="text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.24em] sm:tracking-[0.3em] text-[#9E7A38] uppercase mt-1 sm:mt-1.5 drop-shadow-2xs">
+                  {currentBanner.subtitle}
                 </p>
               )}
 
-              {/* Shop Now Capsule Button */}
-              <div className="pt-1 pointer-events-auto flex justify-start">
-                <span className="inline-flex items-center gap-3 rounded-full py-2.5 sm:py-3 px-6 sm:px-8 text-xs sm:text-sm font-bold tracking-wider shadow-xl transition-all group-hover:scale-105 group-hover:shadow-2xl bg-[#1C1917] text-white hover:bg-[#2B2623] border border-black/80">
-                  <span>{currentBanner.buttonText || 'Shop Now'}</span>
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C9A84C] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <ArrowRight size={13} />
+              {/* Delicate Diamond Accent Motif */}
+              <div className="flex items-center justify-center gap-2 mt-2 sm:mt-3 text-[#C5A059]/80">
+                <span className="w-6 sm:w-12 h-px bg-gradient-to-r from-transparent to-[#C5A059]" />
+                <span className="text-[9px] sm:text-xs">✦</span>
+                <span className="w-6 sm:w-12 h-px bg-gradient-to-l from-transparent to-[#C5A059]" />
+              </div>
+
+              {/* Mobile CTA (centered flow on mobile) */}
+              <div className="pt-4 sm:hidden pointer-events-auto flex justify-center">
+                <span className="inline-flex items-center gap-2.5 rounded-full bg-[#FFF9F3]/95 text-[#8A1A31] px-4 py-2 text-xs font-bold tracking-[0.16em] uppercase shadow-md border border-[#E8D8C4]">
+                  <span>{currentBanner.buttonText || 'Shop Collection'}</span>
+                  <span className="w-6 h-6 rounded-full bg-[#8A1A31] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <ArrowRight size={12} className="stroke-[2.5]" />
                   </span>
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Floating Pill CTA Button (Bottom Right) — Exactly Matching User's Screenshot */}
+          <div className="hidden sm:block absolute right-6 md:right-12 lg:right-16 bottom-8 sm:bottom-10 z-20 pointer-events-auto">
+            <span className="inline-flex items-center gap-3 rounded-full bg-[#FFF9F3]/95 hover:bg-white text-[#8A1A31] px-5 sm:px-6 py-2.5 sm:py-3 text-xs md:text-sm font-bold tracking-[0.18em] uppercase shadow-[0_8px_24px_rgba(61,41,24,0.14)] hover:shadow-[0_12px_32px_rgba(61,41,24,0.22)] border border-[#E8D8C4] hover:border-[#8A1A31]/40 transition-all duration-300 hover:scale-105 group/btn">
+              <span>{currentBanner.buttonText || 'Shop Collection'}</span>
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#8A1A31] text-white flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover/btn:translate-x-0.5">
+                <ArrowRight size={13} className="stroke-[2.5]" />
+              </span>
+            </span>
           </div>
         </Link>
 
@@ -223,8 +247,8 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
                   aria-label={`Go to slide ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === currentIndex
-                      ? 'w-8 bg-[#C9A84C] shadow-md'
-                      : 'w-2 bg-stone-300 hover:bg-stone-400'
+                      ? 'w-7 bg-[#8A1A31] shadow-xs'
+                      : 'w-2 bg-[#8A1A31]/25 hover:bg-[#8A1A31]/50'
                   }`}
                 />
               ))}
