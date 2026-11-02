@@ -40,7 +40,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Everyday Elegance, Made Affordable',
       subtitle: 'DISCOVER BEAUTIFUL GOLD & SILVER IMITATION JEWELLERY FOR EVERY OCCASION',
       description: 'Lightweight daily-wear hoops, delicate chains, small studs, and minimal accents crafted for effortless style.',
-      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102c',
+      imageUrl: '/images/banners/hero-everyday-elegance.jpg?v=20261102',
       buttonText: 'Shop Collection',
       linkUrl: '/products',
     },
@@ -49,7 +49,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Dainty Studs & Everyday Hoops',
       subtitle: 'LIGHTWEIGHT GOLD-TONE & SILVER-TONE ESSENTIALS',
       description: 'Comfortable, skin-friendly daily wear designed for college, work, and everyday moments.',
-      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102c',
+      imageUrl: '/images/banners/hero-dainty-hoops.jpg?v=20261102',
       buttonText: 'Shop Earrings',
       linkUrl: '/products?category=earrings',
     },
@@ -58,7 +58,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
       title: 'Delicate Chains & Layered Pendants',
       subtitle: 'MINIMAL & TRENDY FOR CASUAL & SPECIAL OCCASIONS',
       description: 'Subtle sparkle with minimalist silver and gold-tone pendants for effortless everyday style.',
-      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102c',
+      imageUrl: '/images/banners/hero-minimal-chains.jpg?v=20261102',
       buttonText: 'Shop Necklaces',
       linkUrl: '/products?category=necklaces',
     },
@@ -110,12 +110,13 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
   }
 
   const currentBanner = bannerList[currentIndex]
+  const isDark = currentBanner.imageUrl?.includes('antique') || currentBanner.imageUrl?.includes('hero-jewellery-')
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#120E0C]">
-      {/* 100% Full-Width Edge-to-Edge Hero Background */}
+    <section className={`relative w-full overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#120E0C]' : 'bg-[#FAF8F5]'}`}>
+      {/* 100% Full-Width Edge-to-Edge Container without Side Margins */}
       <div
-        className="group relative w-full h-[480px] sm:h-[560px] md:h-[640px] lg:h-[700px] xl:h-[740px] overflow-hidden"
+        className="group relative w-full h-[460px] sm:h-[540px] md:h-[620px] lg:h-[680px] xl:h-[720px] overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -123,7 +124,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
           href={resolveLink(currentBanner.linkUrl)}
           className="block relative w-full h-full overflow-hidden focus:outline-none"
         >
-          {/* Full Background Jewellery Photography - 100% Crystal-Clear */}
+          {/* Background Jewellery Product Photography stretching 100% */}
           <div className="absolute inset-0 w-full h-full">
             <picture>
               {currentBanner.mobileImageUrl && (
@@ -135,29 +136,43 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               <img
                 src={currentBanner.imageUrl}
                 alt={currentBanner.title || 'KALAVIES Jewellery Banner'}
-                className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
+                className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-[1.01]"
                 loading="eager"
                 fetchPriority="high"
               />
             </picture>
 
-            {/* Subtle Vignette Scrim - Lets Full Background Image Shine Bright & Vivid */}
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/65 via-black/20 to-black/30" />
+            {/* Centered Soft Vignette for crystal-clear text readability */}
+            <div
+              className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+                isDark
+                  ? 'bg-gradient-to-t from-black/80 via-black/40 to-black/60'
+                  : 'bg-gradient-to-t from-[#FAF8F5]/90 via-[#FAF8F5]/50 to-[#FAF8F5]/70'
+              }`}
+            />
           </div>
 
-          {/* Centered Editorial Content Showcase Floating Over Full Background */}
+          {/* Centered Editorial Content Showcase - Perfectly Balanced With Image */}
           <div className="relative z-10 w-full h-full max-w-5xl mx-auto px-4 sm:px-8 flex flex-col items-center justify-center text-center pb-8 sm:pb-0 pointer-events-none">
             <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
               {currentBanner.subtitle && (
-                <div className="inline-flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-4 py-1.5 rounded-full bg-black/40 text-amber-300 border border-amber-300/30 backdrop-blur-md shadow-lg">
-                  <Sparkles size={13} className="text-amber-300 shrink-0" />
+                <div
+                  className={`inline-flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase mb-2 sm:mb-3 px-3.5 py-1 rounded-full ${
+                    isDark
+                      ? 'bg-black/40 text-[#C9A84C] border border-[#C9A84C]/30 drop-shadow backdrop-blur-sm'
+                      : 'bg-white/80 text-[#A07828] border border-[#A07828]/20 shadow-xs backdrop-blur-sm'
+                  }`}
+                >
+                  <Sparkles size={13} className={isDark ? 'text-[#C9A84C]' : 'text-[#A07828] shrink-0'} />
                   <span>{currentBanner.subtitle}</span>
                 </div>
               )}
 
               {currentBanner.title && (
                 <h1
-                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-2 sm:mb-4 text-center text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+                  className={`text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-2 sm:mb-4 text-center ${
+                    isDark ? 'text-white drop-shadow-lg' : 'text-[#1C1917]'
+                  }`}
                   style={{ fontFamily: 'Playfair Display, Georgia, serif' }}
                 >
                   {currentBanner.title}
@@ -165,16 +180,26 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               )}
 
               {currentBanner.description && (
-                <p className="text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 sm:mb-7 line-clamp-2 sm:line-clamp-3 max-w-xl mx-auto text-center text-stone-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <p
+                  className={`text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 sm:mb-7 line-clamp-2 sm:line-clamp-3 max-w-lg mx-auto text-center ${
+                    isDark ? 'text-stone-200 drop-shadow' : 'text-[#44403C]'
+                  }`}
+                >
                   {currentBanner.description}
                 </p>
               )}
 
               {/* Shop Now Capsule Button */}
               <div className="pt-1 pointer-events-auto flex justify-center">
-                <span className="inline-flex items-center gap-3 rounded-full py-2.5 sm:py-3.5 px-6 sm:px-9 text-xs sm:text-sm font-bold tracking-wider shadow-2xl transition-all duration-300 bg-white text-stone-950 hover:bg-[#C9A84C] hover:text-white border border-white/80 group-hover:scale-105">
-                  <span>{currentBanner.buttonText || 'Shop Collection'}</span>
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C9A84C] group-hover:bg-white text-white group-hover:text-stone-900 flex items-center justify-center shrink-0 shadow-sm transition-colors">
+                <span
+                  className={`inline-flex items-center gap-3 rounded-full py-2.5 sm:py-3 px-6 sm:px-8 text-xs sm:text-sm font-bold tracking-wider shadow-xl transition-all group-hover:scale-105 group-hover:shadow-2xl ${
+                    isDark
+                      ? 'bg-white text-[#1A1A1A] hover:bg-[#FAF8F5] border border-white/70'
+                      : 'bg-[#1C1917] text-white hover:bg-[#2B2623] border border-black/80'
+                  }`}
+                >
+                  <span>{currentBanner.buttonText || 'Shop Now'}</span>
+                  <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C9A84C] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <ArrowRight size={13} />
                   </span>
                 </span>
@@ -183,14 +208,14 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
           </div>
         </Link>
 
-        {/* Circular Left / Right Arrow Controls */}
+        {/* Circular Left / Right Arrow Controls Matching User's Inspiration */}
         {total > 1 && (
           <>
             <button
               type="button"
               onClick={goToPrev}
               aria-label="Previous Slide"
-              className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/70 text-white shadow-2xl flex items-center justify-center border border-white/30 hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer backdrop-blur-md"
+              className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/95 text-[#1C1917] shadow-xl flex items-center justify-center border border-stone-200/80 hover:bg-white hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer backdrop-blur-sm"
             >
               <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
             </button>
@@ -198,7 +223,7 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
               type="button"
               onClick={goToNext}
               aria-label="Next Slide"
-              className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/70 text-white shadow-2xl flex items-center justify-center border border-white/30 hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer backdrop-blur-md"
+              className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/95 text-[#1C1917] shadow-xl flex items-center justify-center border border-stone-200/80 hover:bg-white hover:scale-110 active:scale-95 transition-all z-20 cursor-pointer backdrop-blur-sm"
             >
               <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
             </button>
@@ -216,8 +241,10 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
                   aria-label={`Go to slide ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === currentIndex
-                      ? 'w-8 bg-[#C9A84C] shadow-lg ring-1 ring-white/50'
-                      : 'w-2 bg-white/50 hover:bg-white'
+                      ? 'w-8 bg-[#C9A84C] shadow-md'
+                      : isDark
+                      ? 'w-2 bg-white/60 hover:bg-white'
+                      : 'w-2 bg-stone-300 hover:bg-stone-400'
                   }`}
                 />
               ))}
