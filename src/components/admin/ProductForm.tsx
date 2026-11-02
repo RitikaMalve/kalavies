@@ -149,8 +149,8 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
     mrp: initialData?.mrp ?? 0,
     sellingPrice: initialData?.sellingPrice ?? 0,
     costPrice: initialData?.costPrice ?? 0,
-    totalStock: initialData?.totalStock ?? 25,
-    lowStockThreshold: initialData?.lowStockThreshold ?? 5,
+    totalStock: initialData?.totalStock ?? 1,
+    lowStockThreshold: initialData?.lowStockThreshold ?? 0,
     status: initialData?.status || 'PUBLISHED',
     isFeatured: initialData?.isFeatured || false,
     isTrending: initialData?.isTrending || false,
@@ -398,8 +398,8 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
       mrp: 0,
       sellingPrice: 0,
       costPrice: 0,
-      totalStock: 25,
-      lowStockThreshold: 5,
+      totalStock: 1,
+      lowStockThreshold: 0,
       status: 'PUBLISHED',
       isFeatured: false,
       isTrending: false,
@@ -1285,7 +1285,7 @@ export default function ProductForm({ initialData, categories, isEditing }: Prod
                 </label>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   value={formData.lowStockThreshold}
                   onChange={(e) => setFormData({ ...formData, lowStockThreshold: Number(e.target.value) })}
                   className="w-full rounded-lg border border-[#E8E3DC] px-3.5 py-2 text-sm focus:border-[#C9A84C] focus:outline-none"

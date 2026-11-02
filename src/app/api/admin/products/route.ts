@@ -98,8 +98,11 @@ export async function POST(req: NextRequest) {
         sellingPrice: Number(sellingPrice),
         costPrice: Number(costPrice) || 0,
         discountPercent: Number(discountPercent) || 0,
-        totalStock: Number(totalStock) || 0,
-        lowStockThreshold: Number(lowStockThreshold) || 5,
+        totalStock: Number(totalStock) >= 0 ? Number(totalStock) : 1,
+        lowStockThreshold:
+          lowStockThreshold !== undefined && lowStockThreshold !== null && !isNaN(Number(lowStockThreshold))
+            ? Number(lowStockThreshold)
+            : 0,
         status: status || 'PUBLISHED',
         isFeatured: Boolean(isFeatured),
         isTrending: Boolean(isTrending),

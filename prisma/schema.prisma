@@ -133,8 +133,8 @@ model Product {
   searchTags      String?
   seoTitle        String?
   metaDescription String?
-  totalStock      Int      @default(0)
-  lowStockThreshold Int    @default(5)
+  totalStock      Int      @default(1)
+  lowStockThreshold Int    @default(0)
   viewCount       Int      @default(0)
   soldCount       Int      @default(0)
   avgRating       Float    @default(0)
