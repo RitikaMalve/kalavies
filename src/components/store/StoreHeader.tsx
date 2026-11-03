@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Search, ShoppingBag, Heart, User, Menu, X, ChevronDown,
-  Phone, Mail
+  Phone, Mail, Loader2, ArrowRight
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
+import { formatPrice } from '@/lib/utils'
 
 interface Category {
   id: string
@@ -31,9 +32,60 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
   const { itemCount, openCart } = useCart()
   const { itemCount: wishlistCount } = useWishlist()
 
+  // Live autocomplete search state
+  const [liveResults, setLiveResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showLiveDropdown, setShowLiveDropdown] = useState(false)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const mobileSearchRef = useRef<HTMLDivElement>(null)
+
+  // Debounced search query
+  useEffect(() => {
+    const trimmed = searchQuery.trim()
+    if (trimmed.length < 2) {
+      setLiveResults([])
+      setIsSearching(false)
+      setShowLiveDropdown(false)
+      return
+    }
+
+    setIsSearching(true)
+    const timer = setTimeout(() => {
+      fetch(`/api/products/search?q=${encodeURIComponent(trimmed)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.products) {
+            setLiveResults(data.products)
+            setShowLiveDropdown(true)
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsSearching(false))
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node) &&
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(e.target as Node)
+      ) {
+        setShowLiveDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
+      setShowLiveDropdown(false)
       window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`
       setSearchOpen(false)
     }
@@ -92,17 +144,107 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
             </Link>
 
             {/* Desktop Search */}
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="hidden md:flex flex-1 max-w-md mx-8 relative" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <input
                   type="text"
                   placeholder="Search earrings, necklaces, bangles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-[#E8E3DC] rounded-full bg-[#FAF8F5] text-sm focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
+                  onFocus={() => {
+                    if (liveResults.length > 0) setShowLiveDropdown(true)
+                  }}
+                  className="w-full pl-10 pr-9 py-2.5 border border-[#E8E3DC] rounded-full bg-[#FAF8F5] text-sm focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
                 />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" />
+                {isSearching ? (
+                  <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C9A84C] animate-spin" />
+                ) : searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('')
+                      setShowLiveDropdown(false)
+                    }}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : null}
               </form>
+
+              {/* Live search autocomplete dropdown */}
+              {showLiveDropdown && searchQuery.trim().length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#E8E3DC] overflow-hidden z-50 animate-fadeIn">
+                  <div className="p-3 border-b border-[#E8E3DC]/60 bg-[#FAF8F5]/80 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-[#6B6B6B]">
+                      Matching Jewellery ({liveResults.length})
+                    </span>
+                    <span className="text-[11px] text-[#C9A84C] font-medium">Press Enter to view all</span>
+                  </div>
+
+                  {liveResults.length > 0 ? (
+                    <div className="max-h-80 overflow-y-auto divide-y divide-[#E8E3DC]/50">
+                      {liveResults.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/products/${item.slug}`}
+                          onClick={() => setShowLiveDropdown(false)}
+                          className="flex items-center gap-3 p-3 hover:bg-[#FAF8F5] transition group"
+                        >
+                          <div className="h-11 w-11 rounded-lg border border-[#E8E3DC] overflow-hidden shrink-0 bg-[#FAF8F5]">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="h-full w-full object-cover group-hover:scale-105 transition"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-semibold text-[#1A1A1A] group-hover:text-[#C9A84C] truncate transition">
+                              {item.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {item.categoryName && (
+                                <span className="text-[10px] text-[#C9A84C] font-semibold uppercase tracking-wider">
+                                  {item.categoryName}
+                                </span>
+                              )}
+                              {item.totalStock === 0 && (
+                                <span className="text-[9px] font-bold text-red-700 bg-red-50 px-1.5 py-0.2 rounded border border-red-200">
+                                  Sold Out
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-bold text-[#1A1A1A]">
+                              {formatPrice(item.sellingPrice)}
+                            </span>
+                            {item.mrp > item.sellingPrice && (
+                              <span className="block text-[10px] text-gray-400 line-through">
+                                {formatPrice(item.mrp)}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : !isSearching ? (
+                    <div className="p-6 text-center text-xs text-[#6B6B6B]">
+                      No exact matches found for &ldquo;{searchQuery}&rdquo;.
+                      <p className="mt-1 text-[11px] text-[#C9A84C]">Press Enter to search all keywords and descriptions.</p>
+                    </div>
+                  ) : null}
+
+                  <Link
+                    href={`/products?search=${encodeURIComponent(searchQuery.trim())}`}
+                    onClick={() => setShowLiveDropdown(false)}
+                    className="block p-3 text-center text-xs font-bold text-[#C9A84C] bg-[#FAF8F5] hover:bg-[#F3EFEA] border-t border-[#E8E3DC] transition"
+                  >
+                    View All Results for &ldquo;{searchQuery}&rdquo; →
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Right Actions */}
@@ -223,18 +365,99 @@ export default function StoreHeader({ categories, user }: StoreHeaderProps) {
 
         {/* Mobile Search Bar */}
         {searchOpen && (
-          <div className="md:hidden border-t border-[#E8E3DC] p-3">
+          <div className="md:hidden border-t border-[#E8E3DC] p-3 relative" ref={mobileSearchRef}>
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
-                placeholder="Search jewellery..."
+                placeholder="Search jewellery (e.g. necklace, jhumka, earrings)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (liveResults.length > 0) setShowLiveDropdown(true)
+                }}
                 autoFocus
-                className="w-full pl-10 pr-4 py-2.5 border border-[#E8E3DC] rounded-full bg-[#FAF8F5] text-sm focus:outline-none focus:border-[#C9A84C] transition-colors"
+                className="w-full pl-10 pr-9 py-2.5 border border-[#E8E3DC] rounded-full bg-[#FAF8F5] text-sm focus:outline-none focus:border-[#C9A84C] transition-colors"
               />
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" />
+              {isSearching ? (
+                <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C9A84C] animate-spin" />
+              ) : searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setShowLiveDropdown(false)
+                  }}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
             </form>
+
+            {/* Mobile Live Search Dropdown */}
+            {showLiveDropdown && searchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-3 right-3 mt-1.5 bg-white rounded-2xl shadow-xl border border-[#E8E3DC] overflow-hidden z-50 animate-fadeIn">
+                <div className="p-2.5 border-b border-[#E8E3DC]/60 bg-[#FAF8F5]/80 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#6B6B6B]">
+                    Results ({liveResults.length})
+                  </span>
+                  <span className="text-[11px] text-[#C9A84C] font-medium">Tap result to view</span>
+                </div>
+
+                {liveResults.length > 0 ? (
+                  <div className="max-h-72 overflow-y-auto divide-y divide-[#E8E3DC]/50">
+                    {liveResults.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/products/${item.slug}`}
+                        onClick={() => {
+                          setShowLiveDropdown(false)
+                          setSearchOpen(false)
+                        }}
+                        className="flex items-center gap-2.5 p-2.5 hover:bg-[#FAF8F5] transition"
+                      >
+                        <div className="h-10 w-10 rounded-lg border border-[#E8E3DC] overflow-hidden shrink-0 bg-[#FAF8F5]">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-semibold text-[#1A1A1A] truncate">
+                            {item.name}
+                          </h4>
+                          <span className="text-[10px] text-[#C9A84C] font-semibold uppercase">
+                            {item.categoryName}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-[#1A1A1A]">
+                            {formatPrice(item.sellingPrice)}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : !isSearching ? (
+                  <div className="p-4 text-center text-xs text-[#6B6B6B]">
+                    No direct matches. Tap below to search all jewellery.
+                  </div>
+                ) : null}
+
+                <Link
+                  href={`/products?search=${encodeURIComponent(searchQuery.trim())}`}
+                  onClick={() => {
+                    setShowLiveDropdown(false)
+                    setSearchOpen(false)
+                  }}
+                  className="block p-2.5 text-center text-xs font-bold text-[#C9A84C] bg-[#FAF8F5] border-t border-[#E8E3DC]"
+                >
+                  See all for &ldquo;{searchQuery}&rdquo; →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

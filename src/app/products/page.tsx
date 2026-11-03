@@ -5,6 +5,7 @@ import ProductCard from '@/components/store/ProductCard'
 import Link from 'next/link'
 import SortSelector from '@/components/store/SortSelector'
 import { Filter, X, ChevronRight, SlidersHorizontal, Search } from 'lucide-react'
+import { buildProductSearchWhere, rankProductsByRelevance } from '@/lib/search'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,16 +77,36 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
   const page = Number(params.page) || 1
   const limit = 16
 
+  // URL generator to preserve search and active filters
+  const buildCatalogUrl = (overrides: Record<string, string | number | undefined>) => {
+    const queryObj = new URLSearchParams()
+    if (search) queryObj.set('search', search)
+    if (categorySlug) queryObj.set('category', categorySlug)
+    if (sort && sort !== 'newest') queryObj.set('sort', sort)
+    if (material) queryObj.set('material', material)
+    if (filterBadge) queryObj.set('filter', filterBadge)
+    if (minPrice !== undefined) queryObj.set('minPrice', String(minPrice))
+    if (maxPrice !== undefined) queryObj.set('maxPrice', String(maxPrice))
+
+    Object.entries(overrides).forEach(([key, val]) => {
+      if (val === undefined || val === '') {
+        queryObj.delete(key)
+      } else {
+        queryObj.set(key, String(val))
+      }
+    })
+    const qs = queryObj.toString()
+    return qs ? `/products?${qs}` : '/products'
+  }
+
   // Build where clause
   const where: any = { status: 'PUBLISHED', sellingPrice: { gt: 0 } }
 
   if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { sku: { contains: search } },
-      { material: { contains: search } },
-      { searchTags: { contains: search } },
-    ]
+    const searchConditions = buildProductSearchWhere(search)
+    if (searchConditions.length > 0) {
+      where.OR = searchConditions
+    }
   }
 
   let products: any[] = []
@@ -117,7 +138,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
     }
 
     if (material) {
-      where.material = { contains: material }
+      where.material = { contains: material, mode: 'insensitive' }
     }
 
     if (filterBadge === 'trending') where.isTrending = true
@@ -151,7 +172,9 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
       }),
     ])
 
-    products = results[0]
+    // If searching and default sort, rank by relevance
+    const rawProducts = results[0] || []
+    products = search && sort === 'newest' ? rankProductsByRelevance(rawProducts, search) : rawProducts
     totalCount = results[1]
     categories = results[2]
   } catch (err) {
@@ -183,11 +206,29 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
               className="text-2xl sm:text-3xl font-bold tracking-tight text-[#2D2D2D]"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              {categorySlug ? categorySlug.replace(/-/g, ' ').toUpperCase() : 'ALL JEWELLERY'}
+              {search ? (
+                <span>
+                  Results for &ldquo;<span className="text-[#C9A84C]">{search}</span>&rdquo;
+                </span>
+              ) : categorySlug ? (
+                categorySlug.replace(/-/g, ' ').toUpperCase()
+              ) : (
+                'ALL JEWELLERY'
+              )}
             </h1>
-            <p className="text-xs text-[#6B6B6B] mt-1">
-              Showing {products.length} of {totalCount} curated ornaments
-            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-xs text-[#6B6B6B]">
+                Showing {products.length} of {totalCount} curated ornaments
+              </p>
+              {search && (
+                <Link
+                  href={buildCatalogUrl({ search: undefined, page: 1 })}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-0.5 rounded-full border border-red-200 transition"
+                >
+                  Clear &ldquo;{search}&rdquo; ✕
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Sort selector */}
@@ -200,7 +241,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
         {/* Horizontal Category & Quick Filter Pills for Mobile / Tablet */}
         <div className="lg:hidden flex items-center gap-2 overflow-x-auto pb-2 -mx-4 px-4 pt-3 scrollbar-none">
           <Link
-            href={`/products?sort=${sort}`}
+            href={buildCatalogUrl({ category: undefined, filter: undefined, page: 1 })}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
               !categorySlug && !filterBadge
                 ? 'bg-[#1A1A1A] text-white shadow-xs'
@@ -210,7 +251,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
             All Jewellery
           </Link>
           <Link
-            href={`/products?filter=trending&sort=${sort}`}
+            href={buildCatalogUrl({ filter: 'trending', page: 1 })}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
               filterBadge === 'trending'
                 ? 'bg-rose-600 text-white shadow-xs'
@@ -220,7 +261,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
             🔥 Trending
           </Link>
           <Link
-            href={`/products?filter=bestseller&sort=${sort}`}
+            href={buildCatalogUrl({ filter: 'bestseller', page: 1 })}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
               filterBadge === 'bestseller'
                 ? 'bg-purple-700 text-white shadow-xs'
@@ -230,7 +271,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
             ⭐ Bestsellers
           </Link>
           <Link
-            href={`/products?filter=new&sort=${sort}`}
+            href={buildCatalogUrl({ filter: 'new', page: 1 })}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
               filterBadge === 'new'
                 ? 'bg-[#C9A84C] text-white shadow-xs'
@@ -242,7 +283,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
           {categories.map((c) => (
             <Link
               key={c.id}
-              href={`/products?category=${c.slug}&sort=${sort}`}
+              href={buildCatalogUrl({ category: c.slug, page: 1 })}
               className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
                 categorySlug === c.slug
                   ? 'bg-[#C9A84C] text-white shadow-xs'
@@ -277,7 +318,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 </h4>
                 <div className="space-y-1 max-h-60 overflow-y-auto text-xs">
                   <Link
-                    href={`/products?sort=${sort}`}
+                    href={buildCatalogUrl({ category: undefined, page: 1 })}
                     className={`block py-1 ${
                       !categorySlug ? 'font-bold text-[#C9A84C]' : 'text-[#6B6B6B] hover:text-[#2D2D2D]'
                     }`}
@@ -287,7 +328,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                   {categories.map((c) => (
                     <div key={c.id}>
                       <Link
-                        href={`/products?category=${c.slug}&sort=${sort}`}
+                        href={buildCatalogUrl({ category: c.slug, page: 1 })}
                         className={`block py-1 font-semibold ${
                           categorySlug === c.slug
                             ? 'text-[#C9A84C]'
@@ -301,7 +342,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                           {c.children.map((sub: any) => (
                             <Link
                               key={sub.id}
-                              href={`/products?category=${sub.slug}&sort=${sort}`}
+                              href={buildCatalogUrl({ category: sub.slug, page: 1 })}
                               className={`block py-0.5 ${
                                 categorySlug === sub.slug
                                   ? 'font-bold text-[#C9A84C]'
@@ -325,25 +366,25 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 </h4>
                 <div className="space-y-1.5 text-xs text-[#6B6B6B]">
                   <Link
-                    href={`/products?category=${categorySlug}&maxPrice=499&sort=${sort}`}
+                    href={buildCatalogUrl({ minPrice: undefined, maxPrice: 499, page: 1 })}
                     className="block hover:text-[#C9A84C]"
                   >
                     Under ₹499
                   </Link>
                   <Link
-                    href={`/products?category=${categorySlug}&minPrice=500&maxPrice=999&sort=${sort}`}
+                    href={buildCatalogUrl({ minPrice: 500, maxPrice: 999, page: 1 })}
                     className="block hover:text-[#C9A84C]"
                   >
                     ₹500 - ₹999
                   </Link>
                   <Link
-                    href={`/products?category=${categorySlug}&minPrice=1000&maxPrice=1999&sort=${sort}`}
+                    href={buildCatalogUrl({ minPrice: 1000, maxPrice: 1999, page: 1 })}
                     className="block hover:text-[#C9A84C]"
                   >
                     ₹1,000 - ₹1,999
                   </Link>
                   <Link
-                    href={`/products?category=${categorySlug}&minPrice=2000&sort=${sort}`}
+                    href={buildCatalogUrl({ minPrice: 2000, maxPrice: undefined, page: 1 })}
                     className="block hover:text-[#C9A84C]"
                   >
                     ₹2,000 & Above
@@ -360,7 +401,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                   {['Oxidised Silver', 'Brass', 'German Silver', 'Alloy', 'Gold Plated'].map((mat) => (
                     <Link
                       key={mat}
-                      href={`/products?category=${categorySlug}&material=${encodeURIComponent(mat)}&sort=${sort}`}
+                      href={buildCatalogUrl({ material: mat, page: 1 })}
                       className="block hover:text-[#C9A84C]"
                     >
                       {mat}
@@ -378,9 +419,13 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 <div className="h-14 w-14 rounded-full bg-amber-50 text-[#C9A84C] flex items-center justify-center mx-auto mb-4">
                   <Search size={24} />
                 </div>
-                <h3 className="font-bold text-lg text-[#2D2D2D]">No Matching Jewellery Found</h3>
+                <h3 className="font-bold text-lg text-[#2D2D2D]">
+                  {search ? `No Jewellery Found for "${search}"` : 'No Matching Jewellery Found'}
+                </h3>
                 <p className="text-xs text-[#6B6B6B] mt-1 max-w-sm mx-auto">
-                  Try adjusting your search criteria or resetting filters to view our full collection.
+                  {search
+                    ? 'We searched titles, descriptions, and materials. Try checking keywords or exploring our full collection below.'
+                    : 'Try adjusting your search criteria or resetting filters to view our full collection.'}
                 </p>
                 <Link
                   href="/products"
@@ -402,7 +447,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
               <div className="flex items-center justify-center gap-1.5 pt-4">
                 {page > 1 && (
                   <Link
-                    href={`/products?page=${page - 1}&category=${categorySlug}&sort=${sort}`}
+                    href={buildCatalogUrl({ page: page - 1 })}
                     className="rounded-lg border border-[#E8E3DC] bg-white px-3 py-1.5 text-xs font-medium text-[#2D2D2D] hover:bg-gray-50"
                   >
                     Previous
@@ -411,7 +456,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 {Array.from({ length: totalPages }).map((_, i) => (
                   <Link
                     key={i}
-                    href={`/products?page=${i + 1}&category=${categorySlug}&sort=${sort}`}
+                    href={buildCatalogUrl({ page: i + 1 })}
                     className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                       page === i + 1
                         ? 'bg-[#C9A84C] text-white font-bold'
@@ -423,7 +468,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                 ))}
                 {page < totalPages && (
                   <Link
-                    href={`/products?page=${page + 1}&category=${categorySlug}&sort=${sort}`}
+                    href={buildCatalogUrl({ page: page + 1 })}
                     className="rounded-lg border border-[#E8E3DC] bg-white px-3 py-1.5 text-xs font-medium text-[#2D2D2D] hover:bg-gray-50"
                   >
                     Next

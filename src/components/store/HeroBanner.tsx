@@ -36,6 +36,16 @@ export default function HeroBanner({ banners }: HeroBannerProps) {
 
   const bannerList: BannerItem[] = banners.length > 0 ? banners : [
     {
+      id: 'default-hero-festive-royal',
+      title: 'Festive Royalty, Handcrafted Grace',
+      subtitle: 'AUTHENTIC FLORAL CHOKER & STUD JEWELLERY',
+      description: 'Intricate 22k gold polish necklace with floral pearls and matching studs, crafted for your most cherished moments.',
+      imageUrl: '/images/banners/hero-festive-royal.jpg?v=20261103a',
+      mobileImageUrl: '/images/banners/hero-festive-royal-mobile.jpg?v=20261103a',
+      buttonText: 'Shop Festive',
+      linkUrl: '/products?category=necklaces',
+    },
+    {
       id: 'default-hero-everyday',
       title: 'Everyday Elegance, Made Affordable',
       subtitle: 'HANDCRAFTED GOLD & SILVER ESSENTIALS',

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Plus, Search, Edit, ArrowUpDown, Filter, Eye } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import ProductDeleteButton from '@/components/admin/ProductDeleteButton'
+import { buildProductSearchWhere } from '@/lib/search'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,11 +26,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   const where: any = {}
   if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { sku: { contains: search } },
-      { material: { contains: search } },
-    ]
+    const searchConditions = buildProductSearchWhere(search)
+    if (searchConditions.length > 0) {
+      where.OR = searchConditions
+    }
   }
   if (categoryId) {
     where.categoryId = categoryId

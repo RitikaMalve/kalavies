@@ -191,11 +191,66 @@ async function createSlide3() {
   fs.writeFileSync(path.join(BANNERS_DIR, 'hero-bangles-mobile.jpg'), mobile);
 }
 
+// ========================================================
+// 4. SLIDE 4: FESTIVE ROYAL FLORAL CHOKER & STUD EARRINGS
+// ========================================================
+async function createSlideFestiveRoyal() {
+  const modelPath = path.join(BANNERS_DIR, 'user-festive-choker-model.jpg');
+  const photoW = 960;
+  const photoH = H; // 720
+
+  // 1024x768 -> 960x720 (exact 4:3 downscale, 100% full height uncropped)
+  const resized = await sharp(modelPath)
+    .resize(photoW, photoH, { fit: 'fill' })
+    .toBuffer();
+
+  const maskBuf = makeFeatherMaskSvg(photoW, photoH, 320);
+  const maskImg = await sharp(maskBuf).png().toBuffer();
+
+  const feathered = await sharp(resized)
+    .composite([{ input: maskImg, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  // Background matching the warm studio tone on the left edge of the photo
+  const bgSvg = Buffer.from(`
+    <svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="royalStudioGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#FAF8F5" />
+          <stop offset="25%" stop-color="#F6ECE1" />
+          <stop offset="45%" stop-color="#EADBCA" />
+          <stop offset="65%" stop-color="#D1B79F" />
+          <stop offset="85%" stop-color="#AE866E" />
+          <stop offset="100%" stop-color="#966A51" />
+        </linearGradient>
+      </defs>
+      <rect width="${W}" height="${H}" fill="url(#royalStudioGlow)" />
+    </svg>
+  `);
+  const bgBuf = await sharp(bgSvg).png().toBuffer();
+
+  const finalBanner = await sharp(bgBuf)
+    .composite([{ input: feathered, left: W - photoW, top: 0 }])
+    .jpeg({ quality: 96, mozjpeg: true })
+    .toBuffer();
+
+  fs.writeFileSync(path.join(BANNERS_DIR, 'hero-festive-royal.jpg'), finalBanner);
+
+  // Mobile version
+  const mobile = await sharp(modelPath)
+    .resize(1000, 600, { fit: 'cover', position: 'center' })
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toBuffer();
+  fs.writeFileSync(path.join(BANNERS_DIR, 'hero-festive-royal-mobile.jpg'), mobile);
+}
+
 async function main() {
+  await createSlideFestiveRoyal();
   await createSlide1();
   await createSlide2();
   await createSlide3();
-  console.log('✅ All 3 slides created with seamless feathered blend!');
+  console.log('✅ All 4 slides created with seamless feathered blend!');
 }
 
 main().catch(console.error);
