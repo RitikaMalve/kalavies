@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductDetailClient from '@/components/store/ProductDetailClient'
+import ProductReviews from '@/components/store/ProductReviews'
 import ProductCard from '@/components/store/ProductCard'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
@@ -84,12 +85,13 @@ export default async function ProductDetailPage({ params }: Props) {
       },
     })
 
-    if (product) {
+    if (product && !product.isDeleted) {
       relatedProducts = await prisma.product.findMany({
         where: {
           categoryId: product.categoryId,
           id: { not: product.id },
           status: 'PUBLISHED',
+          isDeleted: false,
           sellingPrice: { gt: 0 },
         },
         take: 4,
@@ -100,7 +102,7 @@ export default async function ProductDetailPage({ params }: Props) {
     console.error('Error fetching product detail:', err)
   }
 
-  if (!product) notFound()
+  if (!product || product.isDeleted) notFound()
 
   const productSchema = {
     '@context': 'https://schema.org/',
@@ -192,6 +194,14 @@ export default async function ProductDetailPage({ params }: Props) {
 
         {/* Product Detail Interactive Component */}
         <ProductDetailClient product={product as any} />
+
+        {/* Verified Customer Ratings & Reviews */}
+        <ProductReviews
+          productSlug={product.slug}
+          productName={product.name}
+          initialAvgRating={product.avgRating}
+          initialReviewCount={product.reviewCount}
+        />
 
         {/* Related Jewellery Section */}
         {relatedProducts.length > 0 && (

@@ -107,9 +107,9 @@ export default function ProductDeleteButton({
                 <AlertTriangle size={22} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#2D2D2D]">Delete Product</h3>
+                <h3 className="text-base font-bold text-[#2D2D2D]">Move Product to Trash</h3>
                 <p className="mt-1 text-xs text-[#6B6B6B]">
-                  Are you sure you want to delete this product? This action cannot be undone.
+                  Move this product to the Trash Folder. You can restore it anytime within 24 hours before automatic permanent deletion.
                 </p>
               </div>
             </div>
@@ -161,10 +161,10 @@ export default function ProductDeleteButton({
               >
                 {loading ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" /> Deleting...
+                    <Loader2 size={14} className="animate-spin" /> Moving to Trash...
                   </>
                 ) : (
-                  'Confirm Delete'
+                  'Move to Trash'
                 )}
               </button>
             </div>

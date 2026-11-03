@@ -39,6 +39,8 @@ interface ProductDetailClientProps {
     style?: string | null
     weight?: string | null
     brandName?: string | null
+    avgRating?: number
+    reviewCount?: number
     images: Image[]
     variants: Variant[]
   }
@@ -293,7 +295,34 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           >
             {product.name}
           </h1>
-          <p className="text-xs text-[#6B6B6B] mt-1">SKU: {product.sku}</p>
+          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+            <span className="text-xs text-[#6B6B6B]">SKU: {product.sku}</span>
+            <span className="text-gray-300">•</span>
+            <a
+              href="#customer-reviews"
+              className="inline-flex items-center gap-1.5 text-xs group cursor-pointer"
+            >
+              <div className="flex items-center text-amber-400">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={13}
+                    className={
+                      i < Math.round(product.avgRating || 5)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-gray-200'
+                    }
+                  />
+                ))}
+              </div>
+              <span className="font-bold text-[#2D2D2D] group-hover:text-[#C9A84C] transition">
+                {product.avgRating ? Number(product.avgRating).toFixed(1) : '5.0'}
+              </span>
+              <span className="text-[#6B6B6B] group-hover:text-[#C9A84C] transition underline decoration-dotted">
+                ({product.reviewCount || 0} review{(product.reviewCount || 0) !== 1 ? 's' : ''})
+              </span>
+            </a>
+          </div>
         </div>
 
         {/* Price & Savings */}

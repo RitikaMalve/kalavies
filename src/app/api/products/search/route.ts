@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
 
     const where: any = {
       status: 'PUBLISHED',
+      isDeleted: false,
       sellingPrice: { gt: 0 },
       ...(searchConditions.length > 0 ? { OR: searchConditions } : {}),
     }

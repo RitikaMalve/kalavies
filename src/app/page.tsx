@@ -50,19 +50,19 @@ export default async function HomePage() {
         orderBy: { sortOrder: 'asc' },
       }),
       prisma.product.findMany({
-        where: { isTrending: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
+        where: { isTrending: true, isDeleted: false, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { soldCount: 'desc' },
       }),
       prisma.product.findMany({
-        where: { isBestseller: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
+        where: { isBestseller: true, isDeleted: false, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { soldCount: 'desc' },
       }),
       prisma.product.findMany({
-        where: { isNewArrival: true, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
+        where: { isNewArrival: true, isDeleted: false, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
         include: { images: true, category: true },
         orderBy: { createdAt: 'desc' },

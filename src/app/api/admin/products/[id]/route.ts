@@ -135,6 +135,9 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params
+  const { searchParams } = new URL(req.url)
+  const isPermanent = searchParams.get('permanent') === 'true'
+
   try {
     const product = await prisma.product.findUnique({
       where: { id },
@@ -149,15 +152,37 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
+    if (!isPermanent) {
+      // Standard delete: move to Trash folder with 24-hour retention
+      await prisma.product.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          status: 'ARCHIVED',
+        },
+      })
+      return NextResponse.json({
+        success: true,
+        message: `Product "${product.name}" moved to Trash folder. It will be permanently removed in 24 hours unless restored.`,
+        softDeleted: true,
+      })
+    }
+
+    // Permanent delete requested
     if (product._count.orderItems > 0) {
       // Product has existing order history: preserve order records via soft delete / archive
       await prisma.product.update({
         where: { id },
-        data: { status: 'ARCHIVED' },
+        data: {
+          status: 'ARCHIVED',
+          isDeleted: true,
+          totalStock: 0,
+        },
       })
       return NextResponse.json({
         success: true,
-        message: `Product "${product.name}" is associated with existing customer orders and has been safely archived (soft deleted) to protect order history.`,
+        message: `Product "${product.name}" has order history and was permanently archived to protect customer orders.`,
         softDeleted: true,
       })
     } else {
@@ -175,7 +200,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       ])
       return NextResponse.json({
         success: true,
-        message: `Product "${product.name}" deleted successfully.`,
+        message: `Product "${product.name}" permanently deleted successfully.`,
         softDeleted: false,
       })
     }

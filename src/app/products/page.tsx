@@ -100,7 +100,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
   }
 
   // Build where clause
-  const where: any = { status: 'PUBLISHED', sellingPrice: { gt: 0 } }
+  const where: any = { status: 'PUBLISHED', isDeleted: false, sellingPrice: { gt: 0 } }
 
   if (search) {
     const searchConditions = buildProductSearchWhere(search)

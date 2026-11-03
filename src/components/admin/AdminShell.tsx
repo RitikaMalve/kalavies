@@ -24,6 +24,7 @@ import {
   LogOut,
   User,
   ChevronDown,
+  Star,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -44,6 +45,7 @@ const navItems = [
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Payment Verification', href: '/admin/payments', icon: QrCode },
   { label: 'Products', href: '/admin/products', icon: Package },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree },
   { label: 'Inventory', href: '/admin/inventory', icon: Warehouse },
   { label: 'Discounts & Coupons', href: '/admin/discounts', icon: Percent },
