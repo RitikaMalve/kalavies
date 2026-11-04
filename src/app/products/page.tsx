@@ -90,7 +90,7 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
   const material = params.material || ''
   const filterBadge = params.filter || ''
   const page = Number(params.page) || 1
-  const limit = 16
+  const limit = 18
 
   // URL generator to preserve search and active filters
   const buildCatalogUrl = (overrides: Record<string, string | number | undefined>) => {
