@@ -14,6 +14,10 @@ const CATEGORY_REAL_IMAGES: Record<string, string> = {
   'necklaces': '/images/categories/necklaces.jpg?v=20261102',
   'bangles': '/images/categories/bangles.jpg?v=20261102',
   'rings': '/images/categories/rings.jpg?v=20261102',
+  'gold-traditional-jewellery': '/images/categories/cat-traditional.jpg',
+  'oxidised-jewellery': '/images/categories/oxidised-jewellery.jpg',
+  'anti-tarnish-jewellery': '/images/categories/cat-daily.jpg',
+  'demand-jewellery': '/images/categories/cat-festive.jpg',
 }
 
 function resolveLink(url?: string | null): string {
@@ -34,6 +38,11 @@ export default async function HomePage() {
   let newArrivals: any[] = []
   let coupons: any[] = []
   let testimonials: any[] = []
+  let necklaceCount = 0
+  let earringCount = 0
+  let nosePinCount = 0
+  let bangleCount = 0
+  let ringCount = 0
 
   try {
     const results = await Promise.all([
@@ -44,8 +53,42 @@ export default async function HomePage() {
       prisma.category.findMany({
         where: { parentId: null, isActive: true },
         include: {
-          children: { where: { isActive: true } },
-          _count: { select: { products: true } },
+          children: {
+            where: {
+              isActive: true,
+              products: {
+                some: {
+                  isDeleted: false,
+                  status: 'PUBLISHED',
+                  sellingPrice: { gt: 0 },
+                },
+              },
+            },
+            include: {
+              _count: {
+                select: {
+                  products: {
+                    where: {
+                      isDeleted: false,
+                      status: 'PUBLISHED',
+                      sellingPrice: { gt: 0 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              products: {
+                where: {
+                  isDeleted: false,
+                  status: 'PUBLISHED',
+                  sellingPrice: { gt: 0 },
+                },
+              },
+            },
+          },
         },
         orderBy: { sortOrder: 'asc' },
       }),
@@ -76,70 +119,171 @@ export default async function HomePage() {
         take: 3,
         orderBy: { sortOrder: 'asc' },
       }),
+      // Counts across the store for core jewellery universes
+      prisma.product.count({
+        where: {
+          isDeleted: false,
+          status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
+          OR: [
+            { category: { slug: { contains: 'necklace' } } },
+            { category: { name: { contains: 'necklace', mode: 'insensitive' } } },
+            { name: { contains: 'necklace', mode: 'insensitive' } },
+            { name: { contains: 'choker', mode: 'insensitive' } },
+          ],
+        },
+      }),
+      prisma.product.count({
+        where: {
+          isDeleted: false,
+          status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
+          OR: [
+            { category: { slug: { contains: 'earring' } } },
+            { category: { slug: { contains: 'earing' } } },
+            { category: { slug: { contains: 'cuff' } } },
+            { name: { contains: 'earring', mode: 'insensitive' } },
+            { name: { contains: 'jhumka', mode: 'insensitive' } },
+            { name: { contains: 'dangler', mode: 'insensitive' } },
+            { name: { contains: 'ear cuff', mode: 'insensitive' } },
+          ],
+        },
+      }),
+      prisma.product.count({
+        where: {
+          isDeleted: false,
+          status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
+          OR: [
+            { category: { slug: { contains: 'nose' } } },
+            { name: { contains: 'nose pin', mode: 'insensitive' } },
+            { name: { contains: 'nath', mode: 'insensitive' } },
+          ],
+        },
+      }),
+      prisma.product.count({
+        where: {
+          isDeleted: false,
+          status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
+          OR: [
+            { category: { slug: { contains: 'bangle' } } },
+            { category: { slug: { contains: 'bracelet' } } },
+            { name: { contains: 'bangle', mode: 'insensitive' } },
+            { name: { contains: 'kada', mode: 'insensitive' } },
+            { name: { contains: 'bracelet', mode: 'insensitive' } },
+          ],
+        },
+      }),
+      prisma.product.count({
+        where: {
+          isDeleted: false,
+          status: 'PUBLISHED',
+          sellingPrice: { gt: 0 },
+          AND: [
+            {
+              NOT: [
+                { category: { slug: { contains: 'earring' } } },
+                { name: { contains: 'earring', mode: 'insensitive' } },
+                { name: { contains: 'earing', mode: 'insensitive' } },
+              ],
+            },
+            {
+              OR: [
+                { category: { slug: 'rings' } },
+                { category: { slug: { contains: 'finger-ring' } } },
+                { name: { contains: 'finger ring', mode: 'insensitive' } },
+                { name: { contains: 'band ring', mode: 'insensitive' } },
+              ],
+            },
+          ],
+        },
+      }),
     ])
 
-  banners = results[0] || []
+    banners = results[0] || []
     categories = results[1] || []
     trendingProducts = results[2] || []
     bestsellers = results[3] || []
     newArrivals = results[4] || []
     coupons = results[5] || []
     testimonials = results[6] || []
+    necklaceCount = results[7] || 0
+    earringCount = results[8] || 0
+    nosePinCount = results[9] || 0
+    bangleCount = results[10] || 0
+    ringCount = results[11] || 0
   } catch (error) {
     console.error('Error fetching homepage data:', error)
   }
 
-  const fallbackCategories = [
+  // Core essential jewellery collections with verified live product counts
+  const coreUniverses = [
     {
-      id: 'cat-earrings',
-      name: 'Earrings',
-      slug: 'earrings',
-      image: '/images/categories/earrings.jpg?v=20261101',
-      _count: { products: 24 },
+      id: 'universe-necklaces',
+      name: 'Necklaces & Chokers',
+      slug: 'necklaces',
+      image: '/images/categories/necklaces.jpg?v=20261102',
+      count: necklaceCount,
     },
     {
-      id: 'cat-nose-pins',
+      id: 'universe-earrings',
+      name: 'Earrings & Jhumkas',
+      slug: 'earrings',
+      image: '/images/categories/earrings.jpg?v=20261102',
+      count: earringCount,
+    },
+    {
+      id: 'universe-nose-pins',
       name: 'Nose Pins',
       slug: 'nose-pins',
-      image: '/images/categories/nose-pins.jpg?v=20261101',
-      _count: { products: 8 },
+      image: '/images/categories/nose-pins.jpg?v=20261102',
+      count: nosePinCount,
     },
     {
-      id: 'cat-necklaces',
-      name: 'Necklaces',
-      slug: 'necklaces',
-      image: '/images/categories/necklaces.jpg?v=20261101',
-      _count: { products: 15 },
-    },
-    {
-      id: 'cat-bangles',
-      name: 'Bangles',
+      id: 'universe-bangles',
+      name: 'Bangles & Kadas',
       slug: 'bangles',
-      image: '/images/categories/bangles.jpg?v=20261101',
-      _count: { products: 10 },
+      image: '/images/categories/bangles.jpg?v=20261102',
+      count: bangleCount,
     },
     {
-      id: 'cat-rings',
+      id: 'universe-rings',
       name: 'Rings',
       slug: 'rings',
-      image: '/images/categories/rings.jpg?v=20261101',
-      _count: { products: 14 },
+      image: '/images/categories/rings.jpg?v=20261102',
+      count: ringCount,
     },
   ]
 
-  // Strictly show ONLY the 5 core essentials: Earrings, Nose Pins, Necklaces, Bangles, Rings
-  const CORE_CATEGORY_SLUGS = ['earrings', 'nose-pins', 'necklaces', 'bangles', 'rings']
+  // Parent categories with verified live product counts
+  const parentUniverses = (categories || []).map((cat: any) => {
+    const directCount = cat._count?.products || 0
+    const childrenCount = (cat.children || []).reduce(
+      (sum: number, ch: any) => sum + (ch._count?.products || 0),
+      0
+    )
+    return {
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      image:
+        CATEGORY_REAL_IMAGES[cat.slug] ||
+        cat.image ||
+        '/images/categories/oxidised-jewellery.jpg',
+      count: directCount + childrenCount,
+    }
+  })
 
-  const allAvailableCategories =
-    categories.length === 0
-      ? fallbackCategories
-      : categories.flatMap((c) => (c.children && c.children.length > 0 ? [c, ...c.children] : [c]))
-
-  const displayCategories = CORE_CATEGORY_SLUGS.map((slug) => {
-    const found = allAvailableCategories.find((c) => c.slug === slug)
-    if (found) return found
-    return fallbackCategories.find((c) => c.slug === slug)
-  }).filter(Boolean) as typeof fallbackCategories
+  // Combine and STRICTLY filter: when jewellery is empty (count === 0), do NOT show that category or tab!
+  const combined = [...coreUniverses, ...parentUniverses]
+  const seenSlugs = new Set<string>()
+  const displayCategories = combined.filter((c) => {
+    if (seenSlugs.has(c.slug)) return false
+    seenSlugs.add(c.slug)
+    // ONLY show categories that actually have products in stock
+    return c.count > 0
+  })
 
   return (
     <StoreLayout>
@@ -190,7 +334,9 @@ export default async function HomePage() {
                     {cat.name}
                   </h3>
                   <p className="text-[10px] sm:text-[11px] text-[#6B6B6B] mt-0.5">
-                    {cat.children?.length > 0
+                    {cat.count !== undefined
+                      ? `${cat.count} items`
+                      : cat.children?.length > 0
                       ? `${cat.children.length} styles`
                       : cat._count?.products !== undefined
                       ? `${cat._count.products} items`

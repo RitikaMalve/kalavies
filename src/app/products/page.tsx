@@ -28,6 +28,21 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const search = params.search || ''
 
   if (categorySlug) {
+    if (categorySlug === 'necklaces' || categorySlug === 'necklace') {
+      return {
+        title: 'Buy Handcrafted Necklaces & Chokers Online | KALAVIES India',
+        description: 'Shop authentic curated gold-tone & anti-tarnish necklaces, chokers, and pendant sets at best prices from KALAVIES India.',
+        alternates: { canonical: `/products?category=${categorySlug}` },
+      }
+    }
+    if (categorySlug === 'earrings' || categorySlug === 'earring') {
+      return {
+        title: 'Buy Designer Earrings & Jhumkas Online | KALAVIES India',
+        description: 'Shop authentic oxidised and gold-look earrings, studs, ear cuffs, and danglers at best prices from KALAVIES India.',
+        alternates: { canonical: `/products?category=${categorySlug}` },
+      }
+    }
+
     try {
       const category = await prisma.category.findUnique({
         where: { slug: categorySlug },
@@ -115,18 +130,81 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
 
   try {
     if (categorySlug) {
-      const matchedCategory = await prisma.category.findUnique({
-        where: { slug: categorySlug },
-        include: { children: true },
-      })
+      const isNecklaceFilter =
+        categorySlug === 'necklaces' ||
+        categorySlug === 'necklace' ||
+        categorySlug.toLowerCase().includes('necklace') ||
+        categorySlug.toLowerCase().includes('nackless')
 
-      if (matchedCategory) {
-        if (matchedCategory.children.length > 0) {
-          where.categoryId = {
-            in: [matchedCategory.id, ...matchedCategory.children.map((c) => c.id)],
+      const isEarringFilter =
+        categorySlug === 'earrings' ||
+        categorySlug === 'earring' ||
+        categorySlug === 'earings'
+
+      if (isNecklaceFilter) {
+        // Find all categories representing necklaces across the entire catalogue
+        const necklaceCategories = await prisma.category.findMany({
+          where: {
+            isActive: true,
+            OR: [
+              { slug: { contains: 'necklace' } },
+              { name: { contains: 'necklace', mode: 'insensitive' } },
+              { slug: { contains: 'choker' } },
+              { name: { contains: 'choker', mode: 'insensitive' } },
+            ],
+          },
+          select: { id: true },
+        })
+
+        const catIds = necklaceCategories.map((c) => c.id)
+
+        where.OR = [
+          ...(where.OR || []),
+          { categoryId: { in: catIds } },
+          { name: { contains: 'necklace', mode: 'insensitive' } },
+          { name: { contains: 'choker', mode: 'insensitive' } },
+        ]
+      } else if (isEarringFilter) {
+        // Find all categories representing earrings across the entire catalogue
+        const earringCategories = await prisma.category.findMany({
+          where: {
+            isActive: true,
+            OR: [
+              { slug: { contains: 'earring' } },
+              { slug: { contains: 'earing' } },
+              { slug: { contains: 'cuff' } },
+              { name: { contains: 'earring', mode: 'insensitive' } },
+              { name: { contains: 'earing', mode: 'insensitive' } },
+              { name: { contains: 'cuff', mode: 'insensitive' } },
+            ],
+          },
+          select: { id: true },
+        })
+
+        const catIds = earringCategories.map((c) => c.id)
+
+        where.OR = [
+          ...(where.OR || []),
+          { categoryId: { in: catIds } },
+          { name: { contains: 'earring', mode: 'insensitive' } },
+          { name: { contains: 'jhumka', mode: 'insensitive' } },
+          { name: { contains: 'dangler', mode: 'insensitive' } },
+          { name: { contains: 'ear cuff', mode: 'insensitive' } },
+        ]
+      } else {
+        const matchedCategory = await prisma.category.findUnique({
+          where: { slug: categorySlug },
+          include: { children: { where: { isActive: true } } },
+        })
+
+        if (matchedCategory) {
+          if (matchedCategory.children.length > 0) {
+            where.categoryId = {
+              in: [matchedCategory.id, ...matchedCategory.children.map((c) => c.id)],
+            }
+          } else {
+            where.categoryId = matchedCategory.id
           }
-        } else {
-          where.categoryId = matchedCategory.id
         }
       }
     }
@@ -167,7 +245,45 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
       prisma.product.count({ where }),
       prisma.category.findMany({
         where: { parentId: null, isActive: true },
-        include: { children: { where: { isActive: true } } },
+        include: {
+          children: {
+            where: {
+              isActive: true,
+              products: {
+                some: {
+                  isDeleted: false,
+                  status: 'PUBLISHED',
+                  sellingPrice: { gt: 0 },
+                },
+              },
+            },
+            include: {
+              _count: {
+                select: {
+                  products: {
+                    where: {
+                      isDeleted: false,
+                      status: 'PUBLISHED',
+                      sellingPrice: { gt: 0 },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { sortOrder: 'asc' },
+          },
+          _count: {
+            select: {
+              products: {
+                where: {
+                  isDeleted: false,
+                  status: 'PUBLISHED',
+                  sellingPrice: { gt: 0 },
+                },
+              },
+            },
+          },
+        },
         orderBy: { sortOrder: 'asc' },
       }),
     ])
@@ -176,7 +292,17 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
     const rawProducts = results[0] || []
     products = search && sort === 'newest' ? rankProductsByRelevance(rawProducts, search) : rawProducts
     totalCount = results[1]
-    categories = results[2]
+
+    // Strictly filter out parent categories that have 0 products (both direct and in children)
+    const rawCategories = results[2] || []
+    categories = rawCategories.filter((cat: any) => {
+      const directCount = cat._count?.products || 0
+      const childrenCount = (cat.children || []).reduce(
+        (sum: number, ch: any) => sum + (ch._count?.products || 0),
+        0
+      )
+      return directCount + childrenCount > 0
+    })
   } catch (err) {
     console.error('Error fetching catalog products:', err)
   }
@@ -280,6 +406,26 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
           >
             ✨ New In
           </Link>
+          <Link
+            href={buildCatalogUrl({ category: 'necklaces', filter: undefined, page: 1 })}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              categorySlug === 'necklaces'
+                ? 'bg-[#C9A84C] text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+            }`}
+          >
+            Necklaces
+          </Link>
+          <Link
+            href={buildCatalogUrl({ category: 'earrings', filter: undefined, page: 1 })}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+              categorySlug === 'earrings'
+                ? 'bg-[#C9A84C] text-white shadow-xs'
+                : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+            }`}
+          >
+            Earrings
+          </Link>
           {categories.map((c) => (
             <Link
               key={c.id}
@@ -324,6 +470,26 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                     }`}
                   >
                     All Categories
+                  </Link>
+                  <Link
+                    href={buildCatalogUrl({ category: 'necklaces', page: 1 })}
+                    className={`block py-1 font-semibold ${
+                      categorySlug === 'necklaces'
+                        ? 'text-[#C9A84C]'
+                        : 'text-[#2D2D2D] hover:text-[#C9A84C]'
+                    }`}
+                  >
+                    Necklaces & Chokers
+                  </Link>
+                  <Link
+                    href={buildCatalogUrl({ category: 'earrings', page: 1 })}
+                    className={`block py-1 font-semibold ${
+                      categorySlug === 'earrings'
+                        ? 'text-[#C9A84C]'
+                        : 'text-[#2D2D2D] hover:text-[#C9A84C]'
+                    }`}
+                  >
+                    Earrings & Jhumkas
                   </Link>
                   {categories.map((c) => (
                     <div key={c.id}>
