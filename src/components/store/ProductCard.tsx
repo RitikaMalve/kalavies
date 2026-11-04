@@ -6,6 +6,7 @@ import { Heart, ShoppingBag, Eye, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
+import ShareButton from '@/components/store/ShareButton'
 
 interface ProductCardProps {
   product: {
@@ -117,19 +118,27 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Wishlist Button on Top-Right */}
-        <button
-          onClick={handleToggleWishlist}
-          className={`absolute top-2 right-2 sm:top-2.5 sm:right-2.5 h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center transition-all shadow-xs active:scale-90 z-10 ${
-            isFavorited
-              ? 'bg-red-50 text-red-600'
-              : 'bg-white/90 text-[#2D2D2D] hover:bg-white hover:text-red-600'
-          }`}
-          title="Wishlist"
-          aria-label="Wishlist"
-        >
-          <Heart size={15} fill={isFavorited ? 'currentColor' : 'none'} />
-        </button>
+        {/* Action Buttons on Top-Right: Share & Wishlist */}
+        <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 flex items-center gap-1.5 z-10">
+          <ShareButton
+            variant="compact"
+            title={product.name}
+            url={`/products/${product.slug}`}
+            imageUrl={primaryImage}
+          />
+          <button
+            onClick={handleToggleWishlist}
+            className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center transition-all shadow-xs active:scale-90 ${
+              isFavorited
+                ? 'bg-red-50 text-red-600'
+                : 'bg-white/90 text-[#2D2D2D] hover:bg-white hover:text-red-600'
+            }`}
+            title="Wishlist"
+            aria-label="Wishlist"
+          >
+            <Heart size={15} fill={isFavorited ? 'currentColor' : 'none'} />
+          </button>
+        </div>
 
         {isOutOfStock && (
           <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center z-20">

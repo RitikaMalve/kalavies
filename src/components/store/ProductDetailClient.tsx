@@ -6,6 +6,7 @@ import { Heart, ShoppingBag, Zap, Truck, ShieldCheck, RefreshCw, Star, Check, Sp
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
+import ShareButton from '@/components/store/ShareButton'
 
 interface Variant {
   id: string
@@ -216,6 +217,16 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           >
             <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
           </button>
+
+          {/* Floating Share Button */}
+          <div className="absolute top-4 right-16 z-10">
+            <ShareButton
+              variant="icon"
+              title={product.name}
+              url={`/products/${product.slug}`}
+              imageUrl={selectedImage}
+            />
+          </div>
 
           {/* Navigation Arrows */}
           {galleryImages.length > 1 && (
@@ -490,6 +501,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 : 'Buy Now'}
             </button>
           </div>
+
+          {/* Share Bar with Friends & Family */}
+          <ShareButton
+            variant="bar"
+            title={product.name}
+            url={`/products/${product.slug}`}
+            imageUrl={selectedImage}
+          />
         </div>
 
         {/* Delivery Pincode Checker */}
