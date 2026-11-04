@@ -84,14 +84,15 @@ export default function TopLoader() {
           className="fixed inset-0 z-[99990] pointer-events-none flex items-center justify-center bg-white/40 backdrop-blur-[2px] transition-opacity duration-200 animate-in fade-in"
         >
           <div className="flex flex-col items-center justify-center rounded-2xl border border-[#E8E3DC] bg-white/95 px-7 py-5 shadow-2xl backdrop-blur-md space-y-3">
-            <div className="relative flex h-12 w-12 items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-[3px] border-[#C9A84C]/20 border-t-[#C9A84C] animate-spin" />
-              <span
-                className="text-xs font-black text-[#C9A84C] tracking-widest"
-                style={{ fontFamily: 'Playfair Display, serif' }}
-              >
-                KLV
-              </span>
+            <div className="relative flex h-14 w-14 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-[3px] border-[#C9A84C]/25 border-t-[#C9A84C] animate-spin" />
+              <div className="h-9 w-9 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-xs">
+                <img
+                  src="/logo-circle.png"
+                  alt="KALAVIES"
+                  className="h-full w-full object-contain"
+                />
+              </div>
             </div>
             <div className="text-center">
               <p
