@@ -8,11 +8,13 @@ export default function TopLoader() {
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     // When URL or query changes, complete the loader
     if (loading) {
       setProgress(100)
+      setShowModal(false)
       const timer = setTimeout(() => {
         setLoading(false)
         setProgress(0)
@@ -40,9 +42,11 @@ export default function TopLoader() {
           if (isInternal && !isSamePage && !isTargetBlank) {
             setLoading(true)
             setProgress(30)
+            const pModal = setTimeout(() => setShowModal(true), 200)
             const p1 = setTimeout(() => setProgress(65), 120)
             const p2 = setTimeout(() => setProgress(85), 350)
             return () => {
+              clearTimeout(pModal)
               clearTimeout(p1)
               clearTimeout(p2)
             }
@@ -78,7 +82,7 @@ export default function TopLoader() {
       </div>
 
       {/* Screen Loader Overlay */}
-      {loading && progress > 20 && (
+      {loading && showModal && progress > 20 && (
         <div
           aria-hidden="true"
           className="fixed inset-0 z-[99990] pointer-events-none flex items-center justify-center bg-white/40 backdrop-blur-[2px] transition-opacity duration-200 animate-in fade-in"

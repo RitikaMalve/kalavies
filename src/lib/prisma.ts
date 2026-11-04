@@ -33,4 +33,5 @@ export const prisma =
     },
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Cache Prisma client globally in both development and production to prevent connection churn in serverless / container environments
+globalForPrisma.prisma = prisma

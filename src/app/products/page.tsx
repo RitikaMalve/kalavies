@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
+import { getCachedStoreCategories } from '@/lib/categories'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductCard from '@/components/store/ProductCard'
 import Link from 'next/link'
@@ -8,6 +9,14 @@ import { Filter, X, ChevronRight, SlidersHorizontal, Search } from 'lucide-react
 import { buildProductSearchWhere, rankProductsByRelevance } from '@/lib/search'
 
 export const dynamic = 'force-dynamic'
+
+const PRICE_TIERS = [
+  { label: 'Under ₹149', min: undefined, max: 149 },
+  { label: 'Under ₹199', min: undefined, max: 199 },
+  { label: 'Under ₹299', min: undefined, max: 299 },
+  { label: 'Under ₹499', min: undefined, max: 499 },
+  { label: '₹500 & Above', min: 500, max: undefined },
+]
 
 interface Props {
   searchParams: Promise<{
@@ -243,66 +252,14 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
         },
       }),
       prisma.product.count({ where }),
-      prisma.category.findMany({
-        where: { parentId: null, isActive: true },
-        include: {
-          children: {
-            where: {
-              isActive: true,
-              products: {
-                some: {
-                  isDeleted: false,
-                  status: 'PUBLISHED',
-                  sellingPrice: { gt: 0 },
-                },
-              },
-            },
-            include: {
-              _count: {
-                select: {
-                  products: {
-                    where: {
-                      isDeleted: false,
-                      status: 'PUBLISHED',
-                      sellingPrice: { gt: 0 },
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: { sortOrder: 'asc' },
-          },
-          _count: {
-            select: {
-              products: {
-                where: {
-                  isDeleted: false,
-                  status: 'PUBLISHED',
-                  sellingPrice: { gt: 0 },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { sortOrder: 'asc' },
-      }),
+      getCachedStoreCategories(),
     ])
 
     // If searching and default sort, rank by relevance
     const rawProducts = results[0] || []
     products = search && sort === 'newest' ? rankProductsByRelevance(rawProducts, search) : rawProducts
     totalCount = results[1]
-
-    // Strictly filter out parent categories that have 0 products (both direct and in children)
-    const rawCategories = results[2] || []
-    categories = rawCategories.filter((cat: any) => {
-      const directCount = cat._count?.products || 0
-      const childrenCount = (cat.children || []).reduce(
-        (sum: number, ch: any) => sum + (ch._count?.products || 0),
-        0
-      )
-      return directCount + childrenCount > 0
-    })
+    categories = results[2] || []
   } catch (err) {
     console.error('Error fetching catalog products:', err)
   }
@@ -352,6 +309,22 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
                   className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-0.5 rounded-full border border-red-200 transition"
                 >
                   Clear &ldquo;{search}&rdquo; ✕
+                </Link>
+              )}
+              {(minPrice !== undefined || maxPrice !== undefined) && (
+                <Link
+                  href={buildCatalogUrl({ minPrice: undefined, maxPrice: undefined, page: 1 })}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8A1A31] bg-[#FAF8F5] hover:bg-[#F3EFEA] px-2.5 py-0.5 rounded-full border border-[#C9A84C]/50 transition"
+                >
+                  Price: {minPrice ? (maxPrice ? `₹${minPrice} - ₹${maxPrice}` : `₹${minPrice} & Above`) : `Under ₹${maxPrice}`} ✕
+                </Link>
+              )}
+              {material && (
+                <Link
+                  href={buildCatalogUrl({ material: undefined, page: 1 })}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8A1A31] bg-[#FAF8F5] hover:bg-[#F3EFEA] px-2.5 py-0.5 rounded-full border border-[#C9A84C]/50 transition"
+                >
+                  Material: {material} ✕
                 </Link>
               )}
             </div>
@@ -439,6 +412,26 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
               {c.name}
             </Link>
           ))}
+          {PRICE_TIERS.map((tier) => {
+            const isActive = minPrice === tier.min && maxPrice === tier.max
+            return (
+              <Link
+                key={tier.label}
+                href={
+                  isActive
+                    ? buildCatalogUrl({ minPrice: undefined, maxPrice: undefined, page: 1 })
+                    : buildCatalogUrl({ minPrice: tier.min, maxPrice: tier.max, page: 1 })
+                }
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
+                  isActive
+                    ? 'bg-[#C9A84C] text-white shadow-xs'
+                    : 'bg-white border border-[#E8E3DC] text-[#2D2D2D] hover:border-[#C9A84C]'
+                }`}
+              >
+                {tier.label}
+              </Link>
+            )
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
@@ -527,52 +520,87 @@ export default async function ProductsCatalogPage({ searchParams }: Props) {
 
               {/* Price Range Filter */}
               <div className="pt-4 border-t border-[#E8E3DC]">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D2D2D] mb-2.5">
-                  Price Range
-                </h4>
-                <div className="space-y-1.5 text-xs text-[#6B6B6B]">
-                  <Link
-                    href={buildCatalogUrl({ minPrice: undefined, maxPrice: 499, page: 1 })}
-                    className="block hover:text-[#C9A84C]"
-                  >
-                    Under ₹499
-                  </Link>
-                  <Link
-                    href={buildCatalogUrl({ minPrice: 500, maxPrice: 999, page: 1 })}
-                    className="block hover:text-[#C9A84C]"
-                  >
-                    ₹500 - ₹999
-                  </Link>
-                  <Link
-                    href={buildCatalogUrl({ minPrice: 1000, maxPrice: 1999, page: 1 })}
-                    className="block hover:text-[#C9A84C]"
-                  >
-                    ₹1,000 - ₹1,999
-                  </Link>
-                  <Link
-                    href={buildCatalogUrl({ minPrice: 2000, maxPrice: undefined, page: 1 })}
-                    className="block hover:text-[#C9A84C]"
-                  >
-                    ₹2,000 & Above
-                  </Link>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D2D2D]">
+                    Price Range
+                  </h4>
+                  {(minPrice !== undefined || maxPrice !== undefined) && (
+                    <Link
+                      href={buildCatalogUrl({ minPrice: undefined, maxPrice: undefined, page: 1 })}
+                      className="text-[10px] font-semibold text-[#C9A84C] hover:underline"
+                    >
+                      Clear
+                    </Link>
+                  )}
+                </div>
+                <div className="space-y-1 text-xs">
+                  {PRICE_TIERS.map((tier) => {
+                    const isActive = minPrice === tier.min && maxPrice === tier.max
+                    return (
+                      <Link
+                        key={tier.label}
+                        href={
+                          isActive
+                            ? buildCatalogUrl({ minPrice: undefined, maxPrice: undefined, page: 1 })
+                            : buildCatalogUrl({ minPrice: tier.min, maxPrice: tier.max, page: 1 })
+                        }
+                        className={`flex items-center justify-between py-1 px-2 rounded-lg transition-colors ${
+                          isActive
+                            ? 'font-bold text-[#C9A84C] bg-amber-50/70'
+                            : 'text-[#6B6B6B] hover:text-[#2D2D2D] hover:bg-neutral-50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />}
+                          <span>{tier.label}</span>
+                        </span>
+                        {isActive && <span className="text-[11px] font-bold text-[#C9A84C]">✓</span>}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
 
               {/* Material Filter */}
               <div className="pt-4 border-t border-[#E8E3DC]">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D2D2D] mb-2.5">
-                  Material
-                </h4>
-                <div className="space-y-1.5 text-xs text-[#6B6B6B]">
-                  {['Oxidised Silver', 'Brass', 'German Silver', 'Alloy', 'Gold Plated'].map((mat) => (
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D2D2D]">
+                    Material
+                  </h4>
+                  {material && (
                     <Link
-                      key={mat}
-                      href={buildCatalogUrl({ material: mat, page: 1 })}
-                      className="block hover:text-[#C9A84C]"
+                      href={buildCatalogUrl({ material: undefined, page: 1 })}
+                      className="text-[10px] font-semibold text-[#C9A84C] hover:underline"
                     >
-                      {mat}
+                      Clear
                     </Link>
-                  ))}
+                  )}
+                </div>
+                <div className="space-y-1 text-xs">
+                  {['Oxidised Silver', 'Brass', 'German Silver', 'Alloy', 'Gold Plated'].map((mat) => {
+                    const isMatActive = material.toLowerCase() === mat.toLowerCase()
+                    return (
+                      <Link
+                        key={mat}
+                        href={
+                          isMatActive
+                            ? buildCatalogUrl({ material: undefined, page: 1 })
+                            : buildCatalogUrl({ material: mat, page: 1 })
+                        }
+                        className={`flex items-center justify-between py-1 px-2 rounded-lg transition-colors ${
+                          isMatActive
+                            ? 'font-bold text-[#C9A84C] bg-amber-50/70'
+                            : 'text-[#6B6B6B] hover:text-[#2D2D2D] hover:bg-neutral-50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {isMatActive && <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />}
+                          <span>{mat}</span>
+                        </span>
+                        {isMatActive && <span className="text-[11px] font-bold text-[#C9A84C]">✓</span>}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
             </div>

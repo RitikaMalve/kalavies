@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getCachedStoreCategories } from '@/lib/categories'
 import StoreLayout from '@/components/store/StoreLayout'
 import ProductCard from '@/components/store/ProductCard'
 import HeroBanner from '@/components/store/HeroBanner'
@@ -50,48 +51,7 @@ export default async function HomePage() {
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
       }),
-      prisma.category.findMany({
-        where: { parentId: null, isActive: true },
-        include: {
-          children: {
-            where: {
-              isActive: true,
-              products: {
-                some: {
-                  isDeleted: false,
-                  status: 'PUBLISHED',
-                  sellingPrice: { gt: 0 },
-                },
-              },
-            },
-            include: {
-              _count: {
-                select: {
-                  products: {
-                    where: {
-                      isDeleted: false,
-                      status: 'PUBLISHED',
-                      sellingPrice: { gt: 0 },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          _count: {
-            select: {
-              products: {
-                where: {
-                  isDeleted: false,
-                  status: 'PUBLISHED',
-                  sellingPrice: { gt: 0 },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { sortOrder: 'asc' },
-      }),
+      getCachedStoreCategories(),
       prisma.product.findMany({
         where: { isTrending: true, isDeleted: false, status: 'PUBLISHED', sellingPrice: { gt: 0 } },
         take: 8,
