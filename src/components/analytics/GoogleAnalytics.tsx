@@ -32,7 +32,7 @@ function AnalyticsRouteTracker({ measurementId }: { measurementId: string }) {
 }
 
 export default function GoogleAnalytics() {
-  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-GJ2493FY2R'
 
   // If no measurement ID is configured, do not inject gtag scripts
   if (!measurementId || measurementId.trim() === '' || measurementId === 'G-XXXXXXXXXX') {
