@@ -44,7 +44,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. High-speed zero-credential Data URL (Works everywhere, 100% reliable)
+    // 2. Try writing to public directory if filesystem is writable
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const publicDir = path.join(process.cwd(), 'public', 'images', folder)
+      if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true })
+      }
+      const filePath = path.join(publicDir, uniqueFileName)
+      fs.writeFileSync(filePath, buffer)
+      return NextResponse.json({
+        success: true,
+        url: `/images/${folder}/${uniqueFileName}`,
+        provider: 'local',
+        fileName: uniqueFileName,
+      })
+    } catch (fsErr) {
+      console.warn('Filesystem write not available, falling back to data URL:', fsErr)
+    }
+
+    // 3. Fallback Data URL
     const base64Data = buffer.toString('base64')
     const dataUrl = `data:${mimeType};base64,${base64Data}`
 
