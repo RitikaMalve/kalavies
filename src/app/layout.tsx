@@ -6,6 +6,7 @@ import { WishlistProvider } from "@/hooks/useWishlist";
 import CartDrawer from "@/components/store/CartDrawer";
 import PWARegister from "@/components/shared/PWARegister";
 import TopLoader from "@/components/shared/TopLoader";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 const siteUrl = 'https://www.kalavies.com'
 
@@ -156,6 +157,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#FAF8F5] text-[#2D2D2D] selection:bg-[#C9A84C] selection:text-white font-sans">
+        <GoogleAnalytics />
         <Suspense fallback={null}>
           <TopLoader />
         </Suspense>
